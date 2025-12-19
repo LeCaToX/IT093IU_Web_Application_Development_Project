@@ -163,7 +163,7 @@ const SignUpPage = () => {
                                         onChange={handleChange}
                                         onBlur={() => handleBlur(field.id)}
                                         placeholder={field.placeholder}
-                                        className={`nf-input pl-11 ${field.isPassword ? 'pr-11' : ''} ${
+                                        className={`nf-input pl-12 ${field.isPassword ? 'pr-11' : ''} ${
                                             touched[field.id] && errors[field.id]
                                                 ? 'border-nf-error focus:border-nf-error focus:shadow-none'
                                                 : ''

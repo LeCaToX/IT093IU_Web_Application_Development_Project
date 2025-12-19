@@ -105,7 +105,7 @@ const LogInPage = () => {
                                     onChange={handleChange}
                                     onBlur={() => handleBlur("username")}
                                     placeholder="Enter your username"
-                                    className={`nf-input pl-11 ${
+                                    className={`nf-input pl-12 ${
                                         touched.username && errors.username 
                                             ? 'border-nf-error focus:border-nf-error focus:shadow-none' 
                                             : ''
@@ -139,7 +139,7 @@ const LogInPage = () => {
                                     onChange={handleChange}
                                     onBlur={() => handleBlur("password")}
                                     placeholder="Enter your password"
-                                    className={`nf-input pl-11 pr-11 ${
+                                    className={`nf-input pl-12 pr-11 ${
                                         touched.password && errors.password 
                                             ? 'border-nf-error focus:border-nf-error focus:shadow-none' 
                                             : ''
