@@ -3,13 +3,24 @@ import { AVAILABLE_THUMBNAILS, getThumbnailPath } from '../utils/thumbnailAssets
 import { PhotoIcon, LinkIcon, CheckIcon } from '@heroicons/react/24/solid';
 
 const ThumbnailSelector = ({ value, onChange }) => {
-  const [mode, setMode] = useState('existing'); // 'existing' | 'custom'
-  const [customUrl, setCustomUrl] = useState('');
-
   // Determine which thumbnail is currently selected from existing
   const selectedThumbnail = AVAILABLE_THUMBNAILS.find(t =>
     value === getThumbnailPath(t.filename) || value === t.filename
   );
+
+  // Check if value is a custom URL (not matching any preset thumbnail)
+  const isCustomValue = value && !selectedThumbnail && (value.startsWith('http://') || value.startsWith('https://'));
+
+  const [mode, setMode] = useState(isCustomValue ? 'custom' : 'existing');
+  const [customUrl, setCustomUrl] = useState(isCustomValue ? value : '');
+
+  // Initialize customUrl from value prop when it's a custom URL
+  useEffect(() => {
+    if (value && !selectedThumbnail && (value.startsWith('http://') || value.startsWith('https://'))) {
+      setCustomUrl(value);
+      setMode('custom');
+    }
+  }, [value, selectedThumbnail]);
 
   // Handle mode changes
   useEffect(() => {

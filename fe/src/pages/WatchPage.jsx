@@ -106,6 +106,7 @@ const WatchPage = () => {
     const handleSubmitRating = async (rating) => {
         try {
             await axios.post("/ratings", { videoId: video.id, userId: user.id, rating: parseInt(rating) });
+            setUserRating(rating); // Update state to reflect the submitted rating
             toast.success(`Rated ${rating} stars!`);
             setShowRatingDropdown(false);
             await fetchVideo(id);
