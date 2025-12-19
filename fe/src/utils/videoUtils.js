@@ -57,8 +57,21 @@ export const checkVideoExists = async (videoUrl) => {
         return { exists: true, path: videoUrl };
     }
 
+    // If it already starts with /, it's an absolute path - check directly first
+    if (videoUrl && videoUrl.startsWith('/')) {
+        try {
+            const response = await fetch(videoUrl, { method: 'HEAD' });
+            if (response.ok) {
+                console.log('Video found at:', videoUrl);
+                return { exists: true, path: videoUrl };
+            }
+        } catch (error) {
+            console.warn('Failed to check video at path:', videoUrl);
+        }
+    }
+
     const possiblePaths = [
-        `/videos/${videoUrl}`,
+        videoUrl.startsWith('/') ? videoUrl : `/videos/${videoUrl}`,
         `./videos/${videoUrl}`,
         `../videos/${videoUrl}`
     ];

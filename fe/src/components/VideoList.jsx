@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { useVideoStore } from '../stores/useVideoStore';
 import { useCategoryStore } from '../stores/useCategoryStore';
+import { useUserStore } from '../stores/useUserStore';
 import { useNavigateWithLoading } from '../hooks/useNavigateWithLoading';
 import { getImageSrc } from '../utils/imageUtils';
 
@@ -17,6 +18,7 @@ const VideoList = () => {
     const navigateWithLoading = useNavigateWithLoading();
     const { videos, loading, fetchAllVideos, deleteVideo, updateVideo } = useVideoStore();
     const { categories, fetchAllCategories } = useCategoryStore();
+    const { user } = useUserStore();
     const [editingVideo, setEditingVideo] = useState(null);
     const [editedVideo, setEditedVideo] = useState({
         title: '',
@@ -30,6 +32,9 @@ const VideoList = () => {
         fetchAllVideos();
         fetchAllCategories();
     }, [fetchAllVideos, fetchAllCategories]);
+
+    // Filter videos to show only current user's videos
+    const userVideos = videos.filter(video => video.uploaderId === user?.id);
 
     const handleDeleteVideo = async (videoId) => {
         try {
@@ -80,11 +85,11 @@ const VideoList = () => {
 
     return (
         <div className="max-w-7xl mx-auto">
-            {videos.length === 0 ? (
+            {userVideos.length === 0 ? (
                 <p className="text-gray-400">No videos available!</p>
             ) : (
                 <div className="flex flex-col gap-3">
-                    {videos.map((item) => (
+                    {userVideos.map((item) => (
                         <div key={item.id}>                            <div className="flex items-center justify-between px-5 py-2 rounded-lg bg-se-gray hover:bg-pm-purple-hover transition-colors">
                             <div
                                 className="flex gap-3 cursor-pointer flex-1"

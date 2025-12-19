@@ -22,14 +22,15 @@ public class Video {
     private String description;
 
     @Column(nullable = false)
-    private LocalDateTime uploadDate;    private Integer duration; // in seconds
+    private LocalDateTime uploadDate;
+    private Integer duration; // in seconds
 
     @Column(nullable = false)
     private String url;
-    
+
     @Column
     private String thumbnailUrl;
-    
+
     @Column
     private Long viewCount = 0L;
 
@@ -50,8 +51,15 @@ public class Video {
     @OneToMany(mappedBy = "video", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
+    @OneToMany(mappedBy = "relatedVideo", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notification> notifications = new ArrayList<>();
+
     // Constructors
-    public Video() {}    public Video(String title, String description, LocalDateTime uploadDate, Integer duration, String url, String thumbnailUrl, User uploader, Category category) {
+    public Video() {
+    }
+
+    public Video(String title, String description, LocalDateTime uploadDate, Integer duration, String url,
+            String thumbnailUrl, User uploader, Category category) {
         this.title = title;
         this.description = description;
         this.uploadDate = uploadDate;
@@ -67,6 +75,7 @@ public class Video {
     public Long getId() {
         return id;
     }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -74,6 +83,7 @@ public class Video {
     public String getTitle() {
         return title;
     }
+
     public void setTitle(String title) {
         this.title = title;
     }
@@ -81,6 +91,7 @@ public class Video {
     public String getDescription() {
         return description;
     }
+
     public void setDescription(String description) {
         this.description = description;
     }
@@ -88,6 +99,7 @@ public class Video {
     public LocalDateTime getUploadDate() {
         return uploadDate;
     }
+
     public void setUploadDate(LocalDateTime uploadDate) {
         this.uploadDate = uploadDate;
     }
@@ -95,6 +107,7 @@ public class Video {
     public Integer getDuration() {
         return duration;
     }
+
     public void setDuration(Integer duration) {
         this.duration = duration;
     }
@@ -102,6 +115,7 @@ public class Video {
     public String getUrl() {
         return url;
     }
+
     public void setUrl(String url) {
         this.url = url;
     }
@@ -109,6 +123,7 @@ public class Video {
     public String getThumbnailUrl() {
         return thumbnailUrl;
     }
+
     public void setThumbnailUrl(String thumbnailUrl) {
         this.thumbnailUrl = thumbnailUrl;
     }
@@ -116,20 +131,23 @@ public class Video {
     public User getUploader() {
         return uploader;
     }
+
     public void setUploader(User uploader) {
         this.uploader = uploader;
     }
 
     public Category getCategory() {
         return category;
-    }    public void setCategory(Category category) {
+    }
+
+    public void setCategory(Category category) {
         this.category = category;
     }
-    
+
     public Long getViewCount() {
         return viewCount;
     }
-    
+
     public void setViewCount(Long viewCount) {
         this.viewCount = viewCount;
     }
@@ -175,8 +193,10 @@ public class Video {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         Video video = (Video) o;
         return id != null && id.equals(video.id);
     }

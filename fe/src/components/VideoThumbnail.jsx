@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from "react-router-dom";
 import { useNavigateWithLoading } from '../hooks/useNavigateWithLoading';
 import OptimizedImage from './OptimizedImage';
+import { getImageSrc } from '../utils/imageUtils';
 
 const VideoThumbnail = ({ videoId, title, description, url, thumbnailUrl }) => {
     const navigateWithLoading = useNavigateWithLoading();
@@ -9,15 +10,6 @@ const VideoThumbnail = ({ videoId, title, description, url, thumbnailUrl }) => {
     const handleClick = (e) => {
         e.preventDefault();
         navigateWithLoading(`/watch/${videoId}`);
-    };
-
-    // Handle both external URLs (http/https) and local assets
-    const getImageSrc = (thumbUrl) => {
-        if (!thumbUrl) return './assets/placeholder.png';
-        if (thumbUrl.startsWith('http://') || thumbUrl.startsWith('https://')) {
-            return thumbUrl;
-        }
-        return `./assets/${thumbUrl}`;
     };
 
     return (

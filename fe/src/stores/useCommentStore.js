@@ -4,12 +4,12 @@ import toast from "react-hot-toast";
 
 export const useCommentStore = create((set) => ({
 	comments: [],
-    videoComments: [],
+	videoComments: [],
 	comment: [],
 	loadingComment: false,
 
 	setComments: (comments) => set({ comments }),
-	
+
 	createComment: async (newComment) => {
 		set({ loadingComment: true });
 		try {
@@ -19,7 +19,8 @@ export const useCommentStore = create((set) => ({
 				loadingComment: false,
 			}));
 		} catch (error) {
-			toast.error(error.response.data.error);
+			const errorMessage = error.response?.data?.message || error.response?.data?.error || "Failed to post comment";
+			toast.error(errorMessage);
 			set({ loadingComment: false });
 		}
 	},
@@ -46,7 +47,7 @@ export const useCommentStore = create((set) => ({
 		}
 	},
 
-    fetchCommentByVideo: async (id) => {
+	fetchCommentByVideo: async (id) => {
 		set({ loading: true });
 		try {
 			const res = await axios.get(`/comments/video/${id}`, { withCredentials: true });
@@ -56,7 +57,7 @@ export const useCommentStore = create((set) => ({
 			toast.error(error.response.data.error || "Failed to fetch comment by video.");
 		}
 	},
-	
+
 	deleteComment: async (commentId) => {
 		set({ loadingComment: true });
 		try {
@@ -80,7 +81,8 @@ export const useCommentStore = create((set) => ({
 				loadingComment: false,
 			}));
 		} catch (error) {
-			toast.error(error.response.data.error);
+			const errorMessage = error.response?.data?.message || error.response?.data?.error || "Failed to post reply";
+			toast.error(errorMessage);
 			set({ loadingComment: false });
 		}
 	},
