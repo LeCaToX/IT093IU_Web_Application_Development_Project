@@ -73,7 +73,7 @@ const SignUpPage = () => {
         if (!hasErrors(formErrors)) {
             const result = await signup(formData);
             if (result !== false) {
-                navigate('/otp-verification', { state: { email: formData.email } });
+                navigate('/login');
             }
         }
     };

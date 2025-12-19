@@ -176,7 +176,6 @@ const VideoList = () => {
                                             <ThumbnailSelector
                                                 value={editedVideo.thumbnailUrl}
                                                 onChange={(url) => setEditedVideo({ ...editedVideo, thumbnailUrl: url })}
-                                                videoUrl={editedVideo.url}
                                             />
                                         </div>
 

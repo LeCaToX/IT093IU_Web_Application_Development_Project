@@ -116,7 +116,6 @@ const CreateVideoForm = () => {
 					<ThumbnailSelector
 						value={newVideo.thumbnailUrl}
 						onChange={(url) => setNewVideo({ ...newVideo, thumbnailUrl: url })}
-						videoUrl={newVideo.url}
 					/>
 				</div>
 

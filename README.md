@@ -14,10 +14,9 @@ A multi-container web application for video streaming with user management.
 
 ### Video Management
 - Create, edit, delete videos
-- Smart Thumbnail Selection:
-  - Choose from existing assets
+- Thumbnail Selection:
+  - Choose from existing preset assets
   - Custom URL input
-  - Auto-generate from Cloudinary video frames
 
 ### User Profiles
 - Profile Image Selection:
@@ -30,6 +29,8 @@ A multi-container web application for video streaming with user management.
 - Video categories and search
 - Comments and ratings
 - Related videos sidebar
+- Notifications (manual fetch)
+- Playlists and subscriptions
 
 ## Project Structure
 
