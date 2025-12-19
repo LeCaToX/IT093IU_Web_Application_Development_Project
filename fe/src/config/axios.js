@@ -1,27 +1,27 @@
 import axios from "axios";
 import { useUserStore } from "../stores/useUserStore"
 
-// Function to determine the correct API base URL
 const getApiBaseUrl = () => {
-	// Check if environment variable is set
-	if (import.meta.env.VITE_API_BASE_URL) {
-		return import.meta.env.VITE_API_BASE_URL;
-	}
-	
-	// For Docker environment, use backend service name
-	// This works when both frontend and backend are in the same Docker network
-	if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-		// When accessing frontend via localhost, the backend API should also be accessed via localhost
-		return 'http://localhost:8080/api';
-	}
-	
-	// Fallback logic based on current window location
-	const currentHost = window.location.host;
-	const protocol = window.location.protocol;
-	
-	// If accessing via domain, use the same domain for API
-	return `${protocol}//${currentHost}/api`;
+    // 1. PRIORITIZE THE ENVIRONMENT VARIABLE
+    // On Vercel, this must be set to: https://it093iuwebapplicationdevelopmentproject-production.up.railway.app
+    if (import.meta.env.VITE_API_BASE_URL) {
+        return import.meta.env.VITE_API_BASE_URL;
+    }
+    
+    // 2. LOCAL DEVELOPMENT FALLBACK
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return 'http://localhost:8080'; // Note: removed /api here if your controller already has it
+    }
+    
+    // 3. PRODUCTION FALLBACK (HARDCODE RAILWAY LINK)
+    // If the env variable is missing for some reason, point directly to Railway
+    return 'https://it093iuwebapplicationdevelopmentproject-production.up.railway.app';
 };
+
+const axiosInstance = axios.create({
+    baseURL: getApiBaseUrl(),
+    withCredentials: true,
+});
 
 const axiosInstance = axios.create({
 	baseURL: getApiBaseUrl(),
