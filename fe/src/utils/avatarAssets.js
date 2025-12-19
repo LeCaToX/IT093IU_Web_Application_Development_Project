@@ -4,10 +4,6 @@
  */
 export const AVAILABLE_AVATARS = [
   { filename: 'avatar.png', label: 'Default' },
-  { filename: 'chelsea.png', label: 'Chelsea' },
-  { filename: 'chimsau.png', label: 'Chim Sau' },
-  { filename: 'doraemon.jpg', label: 'Doraemon' },
-  { filename: 'onepiece.jpg', label: 'One Piece' },
   { filename: 'logo.png', label: 'Logo' },
 ];
 

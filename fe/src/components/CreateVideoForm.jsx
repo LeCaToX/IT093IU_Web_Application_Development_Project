@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
+import toast from 'react-hot-toast';
+import axios from '../config/axios';
 
 import { useVideoStore } from "../stores/useVideoStore";
 import { useCategoryStore } from "../stores/useCategoryStore";
@@ -11,6 +13,7 @@ const CreateVideoForm = () => {
 	const { id } = useParams();
 	const { createVideo, loading } = useVideoStore();
 	const { categories, fetchAllCategories } = useCategoryStore();
+	const videoInputRef = useRef(null);
 
 	useEffect(() => {
 		fetchAllCategories();
@@ -25,11 +28,22 @@ const CreateVideoForm = () => {
 		categoryId: "",
 	});
 
+	const [videoMode, setVideoMode] = useState('upload'); // 'upload' | 'url'
+	const [isUploading, setIsUploading] = useState(false);
+	const [uploadProgress, setUploadProgress] = useState(0);
+	const [videoPreview, setVideoPreview] = useState(null);
+
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+		if (!newVideo.url) {
+			toast.error("Please upload a video or provide a URL");
+			return;
+		}
 		try {
 			await createVideo(newVideo);
 			setNewVideo({ title: "", description: "", url: "", thumbnailUrl: "", userId: id, categoryId: "" });
+			setVideoPreview(null);
+			setUploadProgress(0);
 		} catch {
 			console.log("Error creating a new video");
 		}
@@ -168,3 +182,4 @@ const CreateVideoForm = () => {
 }
 
 export default CreateVideoForm
+

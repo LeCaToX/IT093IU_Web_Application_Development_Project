@@ -5,7 +5,7 @@ import { resolve } from 'path'
 
 export default defineConfig(({ mode }) => {
   const isDevelopment = mode === 'development';
-  
+
   return {
     plugins: [
       react(),
@@ -39,8 +39,8 @@ export default defineConfig(({ mode }) => {
         interval: 1000,
       },
       allowedHosts: [
-        'netflex.id.vn', 
-        'localhost', 
+        'nexflow.id.vn',
+        'localhost',
       ],
       hmr: isDevelopment ? {
         port: 5173,

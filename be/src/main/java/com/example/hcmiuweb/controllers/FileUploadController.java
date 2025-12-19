@@ -182,4 +182,86 @@ public class FileUploadController {
             return ResponseEntity.badRequest().body(new MessageResponse("Error setting avatar: " + e.getMessage()));
         }
     }
+
+    /**
+     * Upload a video file to Cloudinary
+     * 
+     * @param file The video file to upload
+     * @return The Cloudinary URL of the uploaded video
+     */
+    @PostMapping("/video")
+    public ResponseEntity<?> uploadVideo(@RequestParam("file") MultipartFile file) {
+        try {
+            // Validate file type
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("video/")) {
+                return ResponseEntity.badRequest().body(new MessageResponse("Only video files are allowed"));
+            }
+
+            // Check file size (limit to 100MB)
+            long maxSize = 100 * 1024 * 1024; // 100MB in bytes
+            if (file.getSize() > maxSize) {
+                return ResponseEntity.badRequest().body(new MessageResponse("Video file size must be less than 100MB"));
+            }
+
+            logger.info("Uploading video to Cloudinary: {} (size: {} bytes)", file.getOriginalFilename(),
+                    file.getSize());
+
+            // Upload video to Cloudinary
+            Map uploadResult = cloudinaryService.uploadImage(file, "videos");
+            String videoUrl = (String) uploadResult.get("secure_url");
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("url", videoUrl);
+            response.put("publicId", uploadResult.get("public_id"));
+            response.put("message", "Video uploaded successfully");
+
+            logger.info("Video uploaded successfully: {}", videoUrl);
+            return ResponseEntity.ok(response);
+        } catch (IOException e) {
+            logger.error("Error uploading video: ", e);
+            return ResponseEntity.badRequest().body(new MessageResponse("Error uploading video: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Upload a thumbnail image to Cloudinary
+     * 
+     * @param file The image file to upload
+     * @return The Cloudinary URL of the uploaded thumbnail
+     */
+    @PostMapping("/thumbnail")
+    public ResponseEntity<?> uploadThumbnail(@RequestParam("file") MultipartFile file) {
+        try {
+            // Validate file type
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                return ResponseEntity.badRequest().body(new MessageResponse("Only image files are allowed"));
+            }
+
+            // Check file size (limit to 10MB)
+            long maxSize = 10 * 1024 * 1024; // 10MB in bytes
+            if (file.getSize() > maxSize) {
+                return ResponseEntity.badRequest().body(new MessageResponse("Image file size must be less than 10MB"));
+            }
+
+            logger.info("Uploading thumbnail to Cloudinary: {}", file.getOriginalFilename());
+
+            // Upload thumbnail to Cloudinary
+            Map uploadResult = cloudinaryService.uploadImage(file, "thumbnails");
+            String thumbnailUrl = (String) uploadResult.get("secure_url");
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("url", thumbnailUrl);
+            response.put("publicId", uploadResult.get("public_id"));
+            response.put("message", "Thumbnail uploaded successfully");
+
+            logger.info("Thumbnail uploaded successfully: {}", thumbnailUrl);
+            return ResponseEntity.ok(response);
+        } catch (IOException e) {
+            logger.error("Error uploading thumbnail: ", e);
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse("Error uploading thumbnail: " + e.getMessage()));
+        }
+    }
 }

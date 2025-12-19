@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AVAILABLE_THUMBNAILS, getThumbnailPath } from '../utils/thumbnailAssets';
-import { PhotoIcon, LinkIcon, CheckIcon } from '@heroicons/react/24/solid';
+import { PhotoIcon, LinkIcon, CheckIcon, CloudArrowUpIcon, XMarkIcon } from '@heroicons/react/24/solid';
+import toast from 'react-hot-toast';
+import axios from '../config/axios';
 
 const ThumbnailSelector = ({ value, onChange }) => {
   const selectedThumbnail = AVAILABLE_THUMBNAILS.find(t =>
@@ -41,6 +43,8 @@ const ThumbnailSelector = ({ value, onChange }) => {
       return getThumbnailPath(selectedThumbnail.filename);
     } else if (mode === 'custom' && customUrl) {
       return customUrl;
+    } else if (mode === 'upload' && uploadedPreview) {
+      return uploadedPreview;
     }
     return null;
   };
@@ -65,6 +69,17 @@ const ThumbnailSelector = ({ value, onChange }) => {
         </button>
         <button
           type="button"
+          onClick={() => setMode('upload')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 cursor-pointer ${mode === 'upload'
+            ? 'bg-pm-purple text-white shadow-lg shadow-pm-purple/30'
+            : 'bg-se-gray text-gray-300 hover:bg-pm-purple/50'
+            }`}
+        >
+          <CloudArrowUpIcon className="w-4 h-4" />
+          Upload
+        </button>
+        <button
+          type="button"
           onClick={() => setMode('custom')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 cursor-pointer ${
             mode === 'custom'
@@ -73,7 +88,7 @@ const ThumbnailSelector = ({ value, onChange }) => {
           }`}
         >
           <LinkIcon className="w-4 h-4" />
-          Custom URL
+          URL
         </button>
       </div>
 
@@ -98,7 +113,7 @@ const ThumbnailSelector = ({ value, onChange }) => {
                   <img
                     src={getThumbnailPath(thumbnail.filename)}
                     alt={thumbnail.label}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain bg-gray-800 p-2"
                   />
                   {isSelected && (
                     <div className="absolute inset-0 bg-nf-accent/20 flex items-center justify-center">
@@ -111,6 +126,72 @@ const ThumbnailSelector = ({ value, onChange }) => {
                 </button>
               );
             })}
+          </div>
+        )}
+
+        {/* Upload Mode */}
+        {mode === 'upload' && (
+          <div className="space-y-3">
+            {!uploadedPreview ? (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className={`border-2 border-dashed border-gray-500 rounded-lg p-8 text-center cursor-pointer
+                  hover:border-pm-purple hover:bg-pm-purple/10 transition-all duration-200
+                  ${isUploading ? 'pointer-events-none' : ''}`}
+              >
+                {isUploading ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-16 h-16 rounded-full bg-pm-purple/20 flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-pm-purple"></div>
+                    </div>
+                    <p className="text-white font-medium">Uploading... {uploadProgress}%</p>
+                    <div className="w-full max-w-xs bg-gray-700 rounded-full h-2">
+                      <div
+                        className="bg-pm-purple h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${uploadProgress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-16 h-16 rounded-full bg-pm-purple/20 flex items-center justify-center">
+                      <CloudArrowUpIcon className="w-8 h-8 text-pm-purple" />
+                    </div>
+                    <div>
+                      <p className="text-white font-medium">Click to upload thumbnail</p>
+                      <p className="text-sm text-gray-400">JPG, PNG, GIF up to 10MB</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="relative">
+                <img
+                  src={uploadedPreview}
+                  alt="Uploaded thumbnail"
+                  className="w-full max-h-48 object-contain rounded-lg bg-gray-800"
+                />
+                <button
+                  type="button"
+                  onClick={clearUpload}
+                  className="absolute top-2 right-2 p-1 bg-red-500 rounded-full hover:bg-red-600 transition-colors"
+                >
+                  <XMarkIcon className="w-5 h-5 text-white" />
+                </button>
+              </div>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-lg p-3">
+              <p className="text-xs text-gray-400">
+                📦 Images are uploaded to <span className="text-blue-300">Cloudinary</span> for secure, fast delivery
+              </p>
+            </div>
           </div>
         )}
 
@@ -156,3 +237,4 @@ const ThumbnailSelector = ({ value, onChange }) => {
 };
 
 export default ThumbnailSelector;
+

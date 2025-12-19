@@ -73,6 +73,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers("/api/videos/**").permitAll()
+                        .requestMatchers("/api/uploads/video").permitAll()
+                        .requestMatchers("/api/uploads/thumbnail").permitAll()
                         .anyRequest().authenticated());
 
         http.authenticationProvider(authenticationProvider());
