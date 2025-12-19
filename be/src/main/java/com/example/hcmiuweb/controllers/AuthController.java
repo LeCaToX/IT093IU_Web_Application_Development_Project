@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -26,7 +27,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
@@ -96,13 +96,15 @@ public class AuthController {
                     .map(item -> item.getAuthority())
                     .collect(Collectors.toList());
 
-            // Set JWT token in HTTP-only cookie
-            Cookie jwtCookie = new Cookie("jwt", jwt);
-            jwtCookie.setHttpOnly(true);
-            jwtCookie.setSecure(false); // Set to true in production with HTTPS
-            jwtCookie.setPath("/");
-            jwtCookie.setMaxAge(24 * 60 * 60); // 24 hours
-            response.addCookie(jwtCookie);
+            // Set JWT token in HTTP-only cookie with secure settings for cross-site support
+            ResponseCookie jwtCookie = ResponseCookie.from("jwt", jwt)
+                    .httpOnly(true)
+                    .secure(true) // Required for HTTPS and cross-site cookies
+                    .path("/")
+                    .maxAge(24 * 60 * 60) // 24 hours
+                    .sameSite("None") // Required for cross-site requests (Vercel to Railway)
+                    .build();
+            response.addHeader("Set-Cookie", jwtCookie.toString());
 
             logger.info("User {} successfully authenticated", loginRequest.getUsername());            return ResponseEntity.ok(new JwtResponse(
                 null, // Don't send token in response
@@ -174,13 +176,15 @@ public class AuthController {
             // Clear the authentication from the security context
             SecurityContextHolder.clearContext();
 
-            // Clear the JWT cookie
-            Cookie jwtCookie = new Cookie("jwt", null);
-            jwtCookie.setHttpOnly(true);
-            jwtCookie.setSecure(false); // Set to true in production with HTTPS
-            jwtCookie.setPath("/");
-            jwtCookie.setMaxAge(0); // Delete the cookie
-            response.addCookie(jwtCookie);
+            // Clear the JWT cookie with secure settings for cross-site support
+            ResponseCookie jwtCookie = ResponseCookie.from("jwt", "")
+                    .httpOnly(true)
+                    .secure(true) // Required for HTTPS and cross-site cookies
+                    .path("/")
+                    .maxAge(0) // Delete the cookie
+                    .sameSite("None") // Required for cross-site requests (Vercel to Railway)
+                    .build();
+            response.addHeader("Set-Cookie", jwtCookie.toString());
 
             logger.info("User successfully logged out");
 

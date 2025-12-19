@@ -2,20 +2,26 @@ import axios from "axios";
 import { useUserStore } from "../stores/useUserStore"
 
 const getApiBaseUrl = () => {
+    // Helper function to ensure URL ends with /api
+    const ensureApiSuffix = (url) => {
+        if (!url) return url;
+        return url.endsWith('/api') ? url : url.endsWith('/') ? url + 'api' : url + '/api';
+    };
+    
     // 1. PRIORITIZE THE ENVIRONMENT VARIABLE
-    // On Vercel, this must be set to: https://it093iuwebapplicationdevelopmentproject-production.up.railway.app
+    // On Vercel, this should be set to: https://it093iuwebapplicationdevelopmentproject-production.up.railway.app/api
     if (import.meta.env.VITE_API_BASE_URL) {
-        return import.meta.env.VITE_API_BASE_URL;
+        return ensureApiSuffix(import.meta.env.VITE_API_BASE_URL);
     }
     
     // 2. LOCAL DEVELOPMENT FALLBACK
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return 'http://localhost:8080'; // Note: removed /api here if your controller already has it
+        return 'http://localhost:8080/api';
     }
     
     // 3. PRODUCTION FALLBACK (HARDCODE RAILWAY LINK)
     // If the env variable is missing for some reason, point directly to Railway
-    return 'https://it093iuwebapplicationdevelopmentproject-production.up.railway.app';
+    return 'https://it093iuwebapplicationdevelopmentproject-production.up.railway.app/api';
 };
 
 const axiosInstance = axios.create({
