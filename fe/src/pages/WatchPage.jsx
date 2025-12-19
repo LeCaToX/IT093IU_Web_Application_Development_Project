@@ -386,10 +386,11 @@ const WatchPage = () => {
                                     {user && (
                                         <form onSubmit={handleSubmitComment} className="mb-8">
                                             <div className="flex gap-3">
-                                                <OptimizedImage
-                                                    src={user.avatar || "../assets/avatar.png"}
+                                                <img
+                                                    src={getImageSrc(user.avatar, '/assets/')}
                                                     alt="Your avatar"
                                                     className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                                                    onError={(e) => { e.target.onerror = null; e.target.src = '/assets/avatar.png'; }}
                                                 />
                                                 <div className="flex-1">
                                                     <input
@@ -427,10 +428,11 @@ const WatchPage = () => {
                                         {videoComments.map((comment) => (
                                             <div key={comment.id} className="group">
                                                 <div className="flex gap-3">
-                                                    <OptimizedImage
-                                                        src={comment.avatar || "../assets/avatar.png"}
+                                                    <img
+                                                        src={getImageSrc(comment.userAvatarUrl, '/assets/')}
                                                         alt={comment.username}
                                                         className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                                                        onError={(e) => { e.target.onerror = null; e.target.src = '/assets/avatar.png'; }}
                                                     />
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center gap-2 mb-1">
@@ -456,8 +458,9 @@ const WatchPage = () => {
                                                             </button>
                                                             <button
                                                                 onClick={() => setReplyToComment(replyToComment === comment.id ? null : comment.id)}
-                                                                className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
+                                                                className="flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
                                                             >
+                                                                <ChatBubbleLeftIcon className="w-4 h-4" />
                                                                 Reply
                                                             </button>
                                                             {user?.id === comment.userId && (
@@ -520,10 +523,11 @@ const WatchPage = () => {
                                                             <div className="mt-4 pl-4 border-l-2 border-zinc-800 space-y-4">
                                                                 {comment.replies.map((reply) => (
                                                                     <div key={reply.id} className="flex gap-3 group/reply">
-                                                                        <OptimizedImage
-                                                                            src={reply.avatar || "../assets/avatar.png"}
+                                                                        <img
+                                                                            src={getImageSrc(reply.userAvatarUrl, '/assets/')}
                                                                             alt={reply.username}
                                                                             className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                                                                            onError={(e) => { e.target.onerror = null; e.target.src = '/assets/avatar.png'; }}
                                                                         />
                                                                         <div className="flex-1 min-w-0">
                                                                             <div className="flex items-center gap-2 mb-1">

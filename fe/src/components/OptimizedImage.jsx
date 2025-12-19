@@ -19,7 +19,7 @@ const OptimizedImage = ({ src, alt, className, ...props }) => {
                 <div className="absolute inset-0 bg-transparent animate-pulse rounded-lg" />
             )}
             <img
-                src={error ? '/assets/placeholder.png' : src}
+                src={error ? '/assets/avatar.png' : src}
                 alt={alt}
                 loading="lazy"
                 onLoad={handleLoad}

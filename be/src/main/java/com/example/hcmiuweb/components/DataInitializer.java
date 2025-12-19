@@ -3,11 +3,9 @@ package com.example.hcmiuweb.components;
 import com.example.hcmiuweb.entities.Category;
 import com.example.hcmiuweb.entities.Role;
 import com.example.hcmiuweb.entities.User;
-import com.example.hcmiuweb.entities.Video;
 import com.example.hcmiuweb.repositories.CategoryRepository;
 import com.example.hcmiuweb.repositories.RoleRepository;
 import com.example.hcmiuweb.repositories.UserRepository;
-import com.example.hcmiuweb.repositories.VideoRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -15,8 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -26,18 +22,15 @@ public class DataInitializer implements CommandLineRunner {
         private final RoleRepository roleRepository;
         private final CategoryRepository categoryRepository;
         private final UserRepository userRepository;
-        private final VideoRepository videoRepository;
         private final PasswordEncoder passwordEncoder;
 
         public DataInitializer(RoleRepository roleRepository,
                         CategoryRepository categoryRepository,
                         UserRepository userRepository,
-                        VideoRepository videoRepository,
                         PasswordEncoder passwordEncoder) {
                 this.roleRepository = roleRepository;
                 this.categoryRepository = categoryRepository;
                 this.userRepository = userRepository;
-                this.videoRepository = videoRepository;
                 this.passwordEncoder = passwordEncoder;
         }
 

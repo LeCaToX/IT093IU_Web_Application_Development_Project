@@ -10,38 +10,38 @@
     --color-th-gray: #9ca3af;
     --color-pm-purple: #6b21a8;
     --color-pm-purple-hover: #9233ea;
-    
+
     /* ===== NEW WATCH PAGE DESIGN SYSTEM ===== */
-    
+
     /* Backgrounds - Deep cinematic darks */
     --color-watch-bg: #09090b;
     --color-watch-surface: #18181b;
     --color-watch-surface-hover: #27272a;
     --color-watch-elevated: #1f1f23;
-    
+
     /* Primary accent - Warm amber/gold */
     --color-watch-accent: #f59e0b;
     --color-watch-accent-hover: #fbbf24;
     --color-watch-accent-muted: rgba(245, 158, 11, 0.15);
-    
+
     /* Secondary accent - Cool cyan for contrast */
     --color-watch-secondary: #06b6d4;
     --color-watch-secondary-hover: #22d3ee;
-    
+
     /* Text hierarchy */
     --color-watch-text: #fafafa;
     --color-watch-text-secondary: #a1a1aa;
     --color-watch-text-muted: #71717a;
-    
+
     /* Borders & dividers */
     --color-watch-border: #27272a;
     --color-watch-border-focus: #3f3f46;
-    
+
     /* Status colors */
     --color-watch-success: #10b981;
     --color-watch-error: #f43f5e;
     --color-watch-warning: #f59e0b;
-    
+
     /* Gradients */
     --gradient-watch-card: linear-gradient(135deg, #18181b 0%, #1f1f23 100%);
     --gradient-watch-glow: radial-gradient(ellipse at top, rgba(245, 158, 11, 0.1) 0%, transparent 50%);
@@ -152,61 +152,72 @@
     .no-scrollbar::-webkit-scrollbar {
         display: none;
     }
+
     .no-scrollbar {
         -ms-overflow-style: none;
         scrollbar-width: none;
     }
-    
+
     /* Modal Animations */
     .animate-fade-in {
         animation: fadeIn 0.3s ease-out forwards;
     }
-    
+
     .animate-fade-out {
         animation: fadeOut 0.3s ease-out forwards;
     }
-    
+
     .animate-scale-up {
         animation: scaleUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
-    
+
     .animate-scale-down {
         animation: scaleDown 0.3s ease-in forwards;
     }
-    
+
     .animate-slide-up {
         animation: slideUp 0.5s ease-out 0.2s forwards;
         opacity: 0;
         transform: translateY(20px);
     }
-    
+
     .animate-slide-up-delayed {
         animation: slideUp 0.5s ease-out 0.4s forwards;
         opacity: 0;
         transform: translateY(20px);
     }
-    
+
     .animate-slide-down {
         animation: slideDown 0.3s ease-in forwards;
     }
-    
+
     .animate-slide-down-delayed {
         animation: slideDown 0.3s ease-in 0.1s forwards;
     }
-    
+
     .animate-bounce-gentle {
         animation: bounceGentle 2s infinite;
     }
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
 }
 
 @keyframes scaleUp {
@@ -214,6 +225,7 @@
         opacity: 0;
         transform: scale(0.8) translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: scale(1) translateY(0);
@@ -225,6 +237,7 @@
         opacity: 1;
         transform: scale(1) translateY(0);
     }
+
     to {
         opacity: 0;
         transform: scale(0.8) translateY(20px);
@@ -243,6 +256,7 @@
         opacity: 1;
         transform: translateY(0);
     }
+
     to {
         opacity: 0;
         transform: translateY(20px);
@@ -250,12 +264,19 @@
 }
 
 @keyframes bounceGentle {
-    0%, 20%, 50%, 80%, 100% {
+
+    0%,
+    20%,
+    50%,
+    80%,
+    100% {
         transform: translateY(0);
     }
+
     40% {
         transform: translateY(-8px);
     }
+
     60% {
         transform: translateY(-4px);
     }
@@ -263,9 +284,12 @@
 
 /* Subtle glow animation */
 @keyframes subtleGlow {
-    0%, 100% {
+
+    0%,
+    100% {
         box-shadow: 0 0 20px rgba(245, 158, 11, 0.1);
     }
+
     50% {
         box-shadow: 0 0 30px rgba(245, 158, 11, 0.2);
     }

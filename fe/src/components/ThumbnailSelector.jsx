@@ -91,7 +91,7 @@ const ThumbnailSelector = ({ value, onChange }) => {
                   <img
                     src={getThumbnailPath(thumbnail.filename)}
                     alt={thumbnail.label}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain bg-gray-800 p-2"
                   />
                   {/* Selection overlay */}
                   {isSelected && (

@@ -8,7 +8,7 @@
  */
 export const getImageSrc = (thumbnailUrl, assetPrefix = '/assets/') => {
   if (!thumbnailUrl) {
-    return `${assetPrefix}placeholder.png`;
+    return `${assetPrefix}avatar.png`;
   }
   // If it's already a full URL, use it directly
   if (thumbnailUrl.startsWith('http://') || thumbnailUrl.startsWith('https://')) {
