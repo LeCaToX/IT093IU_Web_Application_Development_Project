@@ -1,38 +1,16 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Link } from "react-router-dom";
 
 import { BookmarkIcon } from '@heroicons/react/24/outline';
 import { PlayIcon, ChevronDownIcon } from '@heroicons/react/24/solid';
 import OptimizedImage from './OptimizedImage';
-
-const carouselVideos = [
-    {
-        id: 1,
-        title: "Solo Leveling",
-        description: "Enter the world of shadows and awaken your true power. Watch the latest episodes now.",
-        tags: ["16+", "Entertainment"],
-        carouselImg: "https://images5.alphacoders.com/137/1372162.jpeg",
-        trailerUrl: "videos/sololeveling.mp4"
-    },
-    {
-        id: 2,
-        title: "Chainsaw Man",
-        description: "Denji harbors a chainsaw devil within him. The world is introduced to Chainsaw Man, but...?!",
-        tags: ["16+", "Entertainment"],
-        carouselImg: "https://images3.alphacoders.com/128/1283303.png",
-        trailerUrl: "videos/csm.mp4"
-    },
-    {
-        id: 3,
-        title: "One Piece",
-        description: "Join Monkey D. Luffy and his swashbuckling crew in their search for the ultimate treasure, the One Piece.",
-        tags: ["14+", "Entertainment"],
-        carouselImg: "https://4kwallpapers.com/images/wallpapers/one-piece-character-5120x2880-15328.jpeg",
-        trailerUrl: "videos/one_piece.mp4"
-    },
-];
+import { useVideoStore } from '../stores/useVideoStore';
+import { useCategoryStore } from '../stores/useCategoryStore';
+import { getImageSrc } from '../utils/imageUtils';
 
 const VideoCarousel = () => {
+    const { videos, fetchAllVideos, loading: videosLoading } = useVideoStore();
+    const { categories, fetchAllCategories } = useCategoryStore();
     const [current, setCurrent] = useState(0);
     const [showTrailer, setShowTrailer] = useState(false);
     const [trailerVideoIndex, setTrailerVideoIndex] = useState(0);
@@ -41,6 +19,52 @@ const VideoCarousel = () => {
     const carouselRef = useRef(null);
     const [isScrolling, setIsScrolling] = useState(false);
     const scrollTimeoutRef = useRef(null);
+
+    // Fetch videos and categories on mount
+    useEffect(() => {
+        fetchAllVideos();
+        fetchAllCategories();
+    }, [fetchAllVideos, fetchAllCategories]);
+
+    // Transform videos from API to carousel format
+    const carouselVideos = useMemo(() => {
+        if (!videos || videos.length === 0) return [];
+
+        // Get category map for tag lookup
+        const categoryMap = {};
+        if (categories && Array.isArray(categories)) {
+            categories.forEach(cat => {
+                categoryMap[cat.id] = cat.name;
+            });
+        }
+
+        // Sort videos by rating (descending) and take top 5
+        const sortedVideos = [...videos]
+            .sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0))
+            .slice(0, 5)
+            .map(video => ({
+                id: video.id,
+                title: video.title,
+                description: video.description || 'Watch now on NexFlixx',
+                tags: [
+                    categoryMap[video.categoryId] || 'Entertainment',
+                    video.averageRating ? `${video.averageRating.toFixed(1)}★` : 'New'
+                ],
+                carouselImg: getImageSrc(video.thumbnailUrl),
+                trailerUrl: video.url?.startsWith('http') || video.url?.startsWith('/')
+                    ? video.url
+                    : `/videos/${video.url}`
+            }));
+
+        return sortedVideos;
+    }, [videos, categories]);
+
+    // Reset current index if it's out of bounds
+    useEffect(() => {
+        if (carouselVideos.length > 0 && current >= carouselVideos.length) {
+            setCurrent(0);
+        }
+    }, [carouselVideos.length, current]);
     
     const resetTimeout = () => {
         if (timeoutRef.current) {
@@ -113,13 +137,17 @@ const VideoCarousel = () => {
 
     // Preload images
     useEffect(() => {
-        carouselVideos.forEach(video => {
-            const img = new Image();
-            img.src = video.carouselImg;
-        });
-    }, []);
+        if (carouselVideos.length > 0) {
+            carouselVideos.forEach(video => {
+                const img = new Image();
+                img.src = video.carouselImg;
+            });
+        }
+    }, [carouselVideos]);
 
     useEffect(() => {
+        if (carouselVideos.length === 0) return;
+        
         resetTimeout();
         timeoutRef.current = setTimeout(() => {
             setCurrent((prevIndex) =>
@@ -130,7 +158,7 @@ const VideoCarousel = () => {
         return () => {
             resetTimeout();
         };
-    }, [current]);
+    }, [current, carouselVideos.length]);
 
     useEffect(() => {
         const handleKeyDown = (event) => {
@@ -184,6 +212,23 @@ const VideoCarousel = () => {
             }
         };
     }, []);
+
+    // Show loading or empty state
+    if (videosLoading) {
+        return (
+            <div ref={carouselRef} className="w-full overflow-hidden relative aspect-[16/9] max-h-[100vh] bg-nf-bg flex items-center justify-center">
+                <div className="text-nf-text-secondary">Loading featured videos...</div>
+            </div>
+        );
+    }
+
+    if (carouselVideos.length === 0) {
+        return (
+            <div ref={carouselRef} className="w-full overflow-hidden relative aspect-[16/9] max-h-[100vh] bg-nf-bg flex items-center justify-center">
+                <div className="text-nf-text-secondary">No videos available</div>
+            </div>
+        );
+    }
 
     return (
         <div ref={carouselRef} className="w-full overflow-hidden relative aspect-[16/9] max-h-[100vh]">
@@ -254,7 +299,7 @@ const VideoCarousel = () => {
                         <div className="hidden md:block absolute top-40 lg:top-52 left-0 w-full">
                             <div className="flex items-center gap-3 mb-10">
                                 <Link 
-                                    to="#" 
+                                    to={`/watch/${carouselVideos[current].id}`}
                                     className="nf-btn nf-btn-primary"
                                 >
                                     <PlayIcon className="w-5 h-5" />
@@ -318,7 +363,7 @@ const VideoCarousel = () => {
             </div>
 
             {/* Trailer Modal */}
-            {showTrailer && (
+            {showTrailer && carouselVideos.length > 0 && carouselVideos[trailerVideoIndex] && (
                 <div 
                     className={`fixed inset-0 bg-nf-bg/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all duration-300 ${
                         isClosing ? 'animate-fade-out' : 'animate-fade-in'
@@ -345,14 +390,27 @@ const VideoCarousel = () => {
                         <div className={`relative w-full transition-all duration-500 ${
                             isClosing ? 'animate-slide-down' : 'animate-slide-up'
                         }`} style={{ paddingBottom: '56.25%' }}>
-                            <iframe
-                                className="absolute inset-0 w-full h-full"
-                                src={carouselVideos[trailerVideoIndex].trailerUrl}
-                                title={`${carouselVideos[trailerVideoIndex].title} Trailer`}
-                                frameBorder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                            ></iframe>
+                            {carouselVideos[trailerVideoIndex].trailerUrl?.includes('youtube.com') || 
+                             carouselVideos[trailerVideoIndex].trailerUrl?.includes('youtu.be') ||
+                             carouselVideos[trailerVideoIndex].trailerUrl?.includes('vimeo.com') ? (
+                                <iframe
+                                    className="absolute inset-0 w-full h-full"
+                                    src={carouselVideos[trailerVideoIndex].trailerUrl}
+                                    title={`${carouselVideos[trailerVideoIndex].title} Trailer`}
+                                    frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                ></iframe>
+                            ) : (
+                                <video
+                                    className="absolute inset-0 w-full h-full"
+                                    src={carouselVideos[trailerVideoIndex].trailerUrl}
+                                    controls
+                                    autoPlay
+                                >
+                                    Your browser does not support the video tag.
+                                </video>
+                            )}
                         </div>
 
                         {/* Title bar */}
