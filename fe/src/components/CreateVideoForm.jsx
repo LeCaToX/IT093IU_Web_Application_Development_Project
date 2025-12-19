@@ -7,7 +7,7 @@ import axios from '../config/axios';
 import { useVideoStore } from "../stores/useVideoStore";
 import { useCategoryStore } from "../stores/useCategoryStore";
 import ThumbnailSelector from "./ThumbnailSelector";
-import { FilmIcon, DocumentTextIcon, LinkIcon, PhotoIcon, TagIcon } from '@heroicons/react/24/outline';
+import { FilmIcon, DocumentTextIcon, LinkIcon, PhotoIcon, TagIcon, CloudArrowUpIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 const CreateVideoForm = () => {
 	const { id } = useParams();
@@ -32,6 +32,64 @@ const CreateVideoForm = () => {
 	const [isUploading, setIsUploading] = useState(false);
 	const [uploadProgress, setUploadProgress] = useState(0);
 	const [videoPreview, setVideoPreview] = useState(null);
+	const [uploadedVideoName, setUploadedVideoName] = useState('');
+
+	const handleVideoUpload = async (e) => {
+		const file = e.target.files?.[0];
+		if (!file) return;
+
+		// Validate file type
+		if (!file.type.startsWith('video/')) {
+			toast.error('Please select a video file');
+			return;
+		}
+
+		// Validate file size (100MB max)
+		if (file.size > 100 * 1024 * 1024) {
+			toast.error('Video must be less than 100MB');
+			return;
+		}
+
+		setIsUploading(true);
+		setUploadProgress(0);
+		setUploadedVideoName(file.name);
+
+		try {
+			const formData = new FormData();
+			formData.append('file', file);
+
+			const response = await axios.post('/uploads/video', formData, {
+				headers: {
+					'Content-Type': 'multipart/form-data',
+				},
+				onUploadProgress: (progressEvent) => {
+					const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+					setUploadProgress(progress);
+				},
+			});
+
+			const uploadedUrl = response.data.url;
+			setVideoPreview(uploadedUrl);
+			setNewVideo({ ...newVideo, url: uploadedUrl });
+			toast.success('Video uploaded successfully!');
+		} catch (error) {
+			console.error('Upload failed:', error);
+			toast.error(error.response?.data?.message || 'Failed to upload video');
+			setUploadedVideoName('');
+		} finally {
+			setIsUploading(false);
+			setUploadProgress(0);
+		}
+	};
+
+	const clearVideoUpload = () => {
+		setVideoPreview(null);
+		setUploadedVideoName('');
+		setNewVideo({ ...newVideo, url: '' });
+		if (videoInputRef.current) {
+			videoInputRef.current.value = '';
+		}
+	};
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -43,39 +101,12 @@ const CreateVideoForm = () => {
 			await createVideo(newVideo);
 			setNewVideo({ title: "", description: "", url: "", thumbnailUrl: "", userId: id, categoryId: "" });
 			setVideoPreview(null);
+			setUploadedVideoName('');
 			setUploadProgress(0);
 		} catch {
 			console.log("Error creating a new video");
 		}
 	};
-
-	const formFields = [
-		{
-			id: 'title',
-			label: 'Title',
-			type: 'text',
-			icon: FilmIcon,
-			placeholder: 'Enter video title',
-			required: true
-		},
-		{
-			id: 'description',
-			label: 'Description',
-			type: 'textarea',
-			icon: DocumentTextIcon,
-			placeholder: 'Describe your video',
-			required: true,
-			rows: 3
-		},
-		{
-			id: 'url',
-			label: 'Video URL',
-			type: 'text',
-			icon: LinkIcon,
-			placeholder: 'https://... or /videos/filename.mp4',
-			required: true
-		}
-	];
 
 	return (
 		<motion.div
@@ -92,40 +123,172 @@ const CreateVideoForm = () => {
 			</div>
 
 			<form onSubmit={handleSubmit} className='space-y-5'>
-				{formFields.map((field) => (
-					<div key={field.id}>
-						<label htmlFor={field.id} className='block text-sm font-medium text-nf-text mb-2'>
-							{field.label}
-						</label>
-						<div className="relative">
-							<field.icon className="absolute left-3.5 top-3 w-5 h-5 text-nf-text-muted" />
-							{field.type === 'textarea' ? (
-								<textarea
-									id={field.id}
-									name={field.id}
-									value={newVideo[field.id]}
-									onChange={(e) => setNewVideo({ ...newVideo, [field.id]: e.target.value })}
-									rows={field.rows}
-									placeholder={field.placeholder}
-									className='nf-input pl-11 resize-none'
-									required={field.required}
-								/>
-							) : (
-								<input
-									type={field.type}
-									id={field.id}
-									name={field.id}
-									value={newVideo[field.id]}
-									onChange={(e) => setNewVideo({ ...newVideo, [field.id]: e.target.value })}
-									placeholder={field.placeholder}
-									className='nf-input pl-11'
-									required={field.required}
-								/>
-							)}
-						</div>
+				{/* Title */}
+				<div>
+					<label htmlFor="title" className='block text-sm font-medium text-nf-text mb-2'>
+						Title
+					</label>
+					<div className="relative">
+						<FilmIcon className="absolute left-4 top-3.5 w-5 h-5 text-nf-text-muted pointer-events-none" />
+						<input
+							type="text"
+							id="title"
+							name="title"
+							value={newVideo.title}
+							onChange={(e) => setNewVideo({ ...newVideo, title: e.target.value })}
+							placeholder="Enter video title"
+							className='nf-input pl-12'
+							required
+						/>
 					</div>
-				))}
+				</div>
 
+				{/* Description */}
+				<div>
+					<label htmlFor="description" className='block text-sm font-medium text-nf-text mb-2'>
+						Description
+					</label>
+					<div className="relative">
+						<DocumentTextIcon className="absolute left-4 top-3.5 w-5 h-5 text-nf-text-muted pointer-events-none" />
+						<textarea
+							id="description"
+							name="description"
+							value={newVideo.description}
+							onChange={(e) => setNewVideo({ ...newVideo, description: e.target.value })}
+							rows={3}
+							placeholder="Describe your video"
+							className='nf-input pl-12 resize-none'
+							required
+						/>
+					</div>
+				</div>
+
+				{/* Video Upload/URL */}
+				<div>
+					<label className='block text-sm font-medium text-nf-text mb-2'>
+						Video
+					</label>
+
+					{/* Mode Selector */}
+					<div className="flex gap-2 mb-3">
+						<button
+							type="button"
+							onClick={() => setVideoMode('upload')}
+							className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 cursor-pointer ${videoMode === 'upload'
+								? 'bg-nf-accent text-nf-bg shadow-lg shadow-nf-accent/20'
+								: 'bg-nf-surface text-nf-text-secondary hover:bg-nf-surface-hover hover:text-nf-text'
+								}`}
+						>
+							<CloudArrowUpIcon className="w-4 h-4" />
+							Upload
+						</button>
+						<button
+							type="button"
+							onClick={() => setVideoMode('url')}
+							className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 cursor-pointer ${videoMode === 'url'
+								? 'bg-nf-accent text-nf-bg shadow-lg shadow-nf-accent/20'
+								: 'bg-nf-surface text-nf-text-secondary hover:bg-nf-surface-hover hover:text-nf-text'
+								}`}
+						>
+							<LinkIcon className="w-4 h-4" />
+							URL
+						</button>
+					</div>
+
+					{/* Upload Mode */}
+					{videoMode === 'upload' && (
+						<div className="bg-nf-bg rounded-xl p-4 border border-nf-border">
+							{!videoPreview ? (
+								<div
+									onClick={() => videoInputRef.current?.click()}
+									className={`border-2 border-dashed border-nf-border rounded-lg p-8 text-center cursor-pointer
+										hover:border-nf-accent hover:bg-nf-accent/10 transition-all duration-200
+										${isUploading ? 'pointer-events-none' : ''}`}
+								>
+									{isUploading ? (
+										<div className="flex flex-col items-center gap-3">
+											<div className="w-16 h-16 rounded-full bg-nf-accent/20 flex items-center justify-center">
+												<div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-nf-accent"></div>
+											</div>
+											<p className="text-nf-text font-medium">Uploading {uploadedVideoName}...</p>
+											<p className="text-nf-text-muted">{uploadProgress}%</p>
+											<div className="w-full max-w-xs bg-nf-surface rounded-full h-2">
+												<div
+													className="bg-nf-accent h-2 rounded-full transition-all duration-300"
+													style={{ width: `${uploadProgress}%` }}
+												></div>
+											</div>
+										</div>
+									) : (
+										<div className="flex flex-col items-center gap-3">
+											<div className="w-16 h-16 rounded-full bg-nf-accent/20 flex items-center justify-center">
+												<CloudArrowUpIcon className="w-8 h-8 text-nf-accent" />
+											</div>
+											<div>
+												<p className="text-nf-text font-medium">Click to upload video</p>
+												<p className="text-sm text-nf-text-muted">MP4, WebM, MOV up to 100MB</p>
+											</div>
+										</div>
+									)}
+								</div>
+							) : (
+								<div className="space-y-3">
+									<div className="flex items-center justify-between p-3 bg-nf-surface rounded-lg">
+										<div className="flex items-center gap-3">
+											<div className="w-10 h-10 rounded-lg bg-nf-accent/20 flex items-center justify-center">
+												<FilmIcon className="w-5 h-5 text-nf-accent" />
+											</div>
+											<div>
+												<p className="text-nf-text font-medium truncate max-w-[200px]">{uploadedVideoName}</p>
+												<p className="text-xs text-nf-success">✓ Uploaded to Cloudinary</p>
+											</div>
+										</div>
+										<button
+											type="button"
+											onClick={clearVideoUpload}
+											className="p-2 text-nf-text-muted hover:text-nf-tertiary transition-colors"
+										>
+											<XMarkIcon className="w-5 h-5" />
+										</button>
+									</div>
+									<video
+										src={videoPreview}
+										className="w-full max-h-48 rounded-lg bg-black"
+										controls
+									/>
+								</div>
+							)}
+							<input
+								ref={videoInputRef}
+								type="file"
+								accept="video/*"
+								onChange={handleVideoUpload}
+								className="hidden"
+							/>
+							<div className="mt-3 bg-nf-accent/10 border border-nf-accent/20 rounded-lg p-3">
+								<p className="text-xs text-nf-text-muted">
+									📦 Videos are uploaded to <span className="text-nf-accent font-medium">Cloudinary</span> for secure, fast streaming
+								</p>
+							</div>
+						</div>
+					)}
+
+					{/* URL Mode */}
+					{videoMode === 'url' && (
+						<div className="relative">
+							<LinkIcon className="absolute left-4 top-3.5 w-5 h-5 text-nf-text-muted pointer-events-none" />
+							<input
+								type="text"
+								value={newVideo.url}
+								onChange={(e) => setNewVideo({ ...newVideo, url: e.target.value })}
+								placeholder="https://... or /videos/filename.mp4"
+								className='nf-input pl-12'
+							/>
+						</div>
+					)}
+				</div>
+
+				{/* Thumbnail */}
 				<div>
 					<label className='flex items-center gap-2 text-sm font-medium text-nf-text mb-2'>
 						<PhotoIcon className="w-5 h-5 text-nf-text-muted" />
@@ -137,6 +300,7 @@ const CreateVideoForm = () => {
 					/>
 				</div>
 
+				{/* Category */}
 				<div>
 					<label htmlFor='category' className='flex items-center gap-2 text-sm font-medium text-nf-text mb-2'>
 						<TagIcon className="w-5 h-5 text-nf-text-muted" />
@@ -162,7 +326,7 @@ const CreateVideoForm = () => {
 				<button
 					type='submit'
 					className='nf-btn nf-btn-primary w-full py-3'
-					disabled={loading}
+					disabled={loading || isUploading}
 				>
 					{loading ? (
 						<span className="flex items-center gap-2">
@@ -182,4 +346,3 @@ const CreateVideoForm = () => {
 }
 
 export default CreateVideoForm
-

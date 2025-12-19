@@ -115,7 +115,7 @@ const Navbar = () => {
                                                     className="fixed inset-0 bg-nf-bg/80 backdrop-blur-sm z-40"
                                                     onClick={() => setIsSearchFocused(false)}
                                                 />
-                                                
+
                                                 {/* Search Card */}
                                                 <motion.div
                                                     initial={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -127,13 +127,13 @@ const Navbar = () => {
                                                     <div className="nf-card-static p-5 m-4 lg:m-0 shadow-2xl">
                                                         <form onSubmit={handleSearch} className="mb-4">
                                                             <div className="relative">
-                                                                <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-nf-text-muted" />
+                                                                <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-nf-text-muted pointer-events-none" />
                                                                 <input
                                                                     type="text"
                                                                     placeholder="Search movies, shows..."
                                                                     value={searchQuery}
                                                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                                                    className="nf-input pl-10 pr-4"
+                                                                    className="nf-input pl-12 pr-4"
                                                                     autoFocus
                                                                 />
                                                             </div>
@@ -201,7 +201,7 @@ const Navbar = () => {
                                         </MenuItem>
                                         <MenuItem>
                                             <button
-                                                className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-nf-tertiary hover:bg-nf-surface-hover transition-colors cursor-pointer"
+                                                className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-nf-accent hover:bg-nf-surface-hover transition-colors cursor-pointer"
                                                 onClick={async () => {
                                                     await logout();
                                                     navigateWithLoading("/");

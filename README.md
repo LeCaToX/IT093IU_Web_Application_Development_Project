@@ -30,7 +30,6 @@ A multi-container web application for video streaming with user management.
 - Comments and ratings
 - Related videos sidebar
 - Notifications (manual fetch)
-- Playlists and subscriptions
 
 ## Project Structure
 

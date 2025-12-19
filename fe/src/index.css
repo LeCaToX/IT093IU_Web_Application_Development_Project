@@ -176,6 +176,12 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--color-nf-text-muted);
 }
 
+/* Input with icon - increased left padding */
+.nf-input.nf-input-icon,
+.nf-input[class*="pl-12"] {
+    padding-left: 3rem !important;
+}
+
 /* Input with dark text (for light-on-dark fields) */
 .nf-input-dark {
     background: rgba(255, 255, 255, 0.95);

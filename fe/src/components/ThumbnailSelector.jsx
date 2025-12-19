@@ -14,6 +14,12 @@ const ThumbnailSelector = ({ value, onChange }) => {
   const [mode, setMode] = useState(isCustomValue ? 'custom' : 'existing');
   const [customUrl, setCustomUrl] = useState(isCustomValue ? value : '');
 
+  // Upload state
+  const fileInputRef = useRef(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadedPreview, setUploadedPreview] = useState(null);
+
   useEffect(() => {
     if (value && !selectedThumbnail && (value.startsWith('http://') || value.startsWith('https://'))) {
       setCustomUrl(value);
@@ -38,6 +44,60 @@ const ThumbnailSelector = ({ value, onChange }) => {
     onChange(getThumbnailPath(thumbnail.filename));
   };
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image must be less than 10MB');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await axios.post('/uploads/thumbnail', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (progressEvent) => {
+          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setUploadProgress(progress);
+        },
+      });
+
+      const uploadedUrl = response.data.url;
+      setUploadedPreview(uploadedUrl);
+      onChange(uploadedUrl);
+      toast.success('Thumbnail uploaded successfully!');
+    } catch (error) {
+      console.error('Upload failed:', error);
+      toast.error(error.response?.data?.message || 'Failed to upload thumbnail');
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const clearUpload = () => {
+    setUploadedPreview(null);
+    onChange('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const getPreviewSrc = () => {
     if (mode === 'existing' && selectedThumbnail) {
       return getThumbnailPath(selectedThumbnail.filename);
@@ -58,11 +118,10 @@ const ThumbnailSelector = ({ value, onChange }) => {
         <button
           type="button"
           onClick={() => setMode('existing')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 cursor-pointer ${
-            mode === 'existing'
-              ? 'bg-nf-accent text-nf-bg shadow-lg shadow-nf-accent/20'
-              : 'bg-nf-surface text-nf-text-secondary hover:bg-nf-surface-hover hover:text-nf-text'
-          }`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 cursor-pointer ${mode === 'existing'
+            ? 'bg-nf-accent text-nf-bg shadow-lg shadow-nf-accent/20'
+            : 'bg-nf-surface text-nf-text-secondary hover:bg-nf-surface-hover hover:text-nf-text'
+            }`}
         >
           <PhotoIcon className="w-4 h-4" />
           Preset
@@ -70,9 +129,9 @@ const ThumbnailSelector = ({ value, onChange }) => {
         <button
           type="button"
           onClick={() => setMode('upload')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 cursor-pointer ${mode === 'upload'
-            ? 'bg-pm-purple text-white shadow-lg shadow-pm-purple/30'
-            : 'bg-se-gray text-gray-300 hover:bg-pm-purple/50'
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 cursor-pointer ${mode === 'upload'
+            ? 'bg-nf-accent text-nf-bg shadow-lg shadow-nf-accent/20'
+            : 'bg-nf-surface text-nf-text-secondary hover:bg-nf-surface-hover hover:text-nf-text'
             }`}
         >
           <CloudArrowUpIcon className="w-4 h-4" />
@@ -81,11 +140,10 @@ const ThumbnailSelector = ({ value, onChange }) => {
         <button
           type="button"
           onClick={() => setMode('custom')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 cursor-pointer ${
-            mode === 'custom'
-              ? 'bg-nf-accent text-nf-bg shadow-lg shadow-nf-accent/20'
-              : 'bg-nf-surface text-nf-text-secondary hover:bg-nf-surface-hover hover:text-nf-text'
-          }`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 cursor-pointer ${mode === 'custom'
+            ? 'bg-nf-accent text-nf-bg shadow-lg shadow-nf-accent/20'
+            : 'bg-nf-surface text-nf-text-secondary hover:bg-nf-surface-hover hover:text-nf-text'
+            }`}
         >
           <LinkIcon className="w-4 h-4" />
           URL
@@ -104,11 +162,10 @@ const ThumbnailSelector = ({ value, onChange }) => {
                   key={thumbnail.filename}
                   type="button"
                   onClick={() => handleSelectExisting(thumbnail)}
-                  className={`relative aspect-video rounded-lg overflow-hidden transition-all duration-200 cursor-pointer group ${
-                    isSelected
-                      ? 'ring-2 ring-nf-accent scale-105 shadow-lg shadow-nf-accent/30'
-                      : 'ring-1 ring-nf-border hover:ring-nf-accent/50 hover:scale-102'
-                  }`}
+                  className={`relative aspect-video rounded-lg overflow-hidden transition-all duration-200 cursor-pointer group ${isSelected
+                    ? 'ring-2 ring-nf-accent scale-105 shadow-lg shadow-nf-accent/30'
+                    : 'ring-1 ring-nf-border hover:ring-nf-accent/50 hover:scale-102'
+                    }`}
                 >
                   <img
                     src={getThumbnailPath(thumbnail.filename)}
@@ -135,31 +192,31 @@ const ThumbnailSelector = ({ value, onChange }) => {
             {!uploadedPreview ? (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className={`border-2 border-dashed border-gray-500 rounded-lg p-8 text-center cursor-pointer
-                  hover:border-pm-purple hover:bg-pm-purple/10 transition-all duration-200
+                className={`border-2 border-dashed border-nf-border rounded-lg p-8 text-center cursor-pointer
+                  hover:border-nf-accent hover:bg-nf-accent/10 transition-all duration-200
                   ${isUploading ? 'pointer-events-none' : ''}`}
               >
                 {isUploading ? (
                   <div className="flex flex-col items-center gap-3">
-                    <div className="w-16 h-16 rounded-full bg-pm-purple/20 flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-pm-purple"></div>
+                    <div className="w-16 h-16 rounded-full bg-nf-accent/20 flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-nf-accent"></div>
                     </div>
-                    <p className="text-white font-medium">Uploading... {uploadProgress}%</p>
-                    <div className="w-full max-w-xs bg-gray-700 rounded-full h-2">
+                    <p className="text-nf-text font-medium">Uploading... {uploadProgress}%</p>
+                    <div className="w-full max-w-xs bg-nf-surface rounded-full h-2">
                       <div
-                        className="bg-pm-purple h-2 rounded-full transition-all duration-300"
+                        className="bg-nf-accent h-2 rounded-full transition-all duration-300"
                         style={{ width: `${uploadProgress}%` }}
                       ></div>
                     </div>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-3">
-                    <div className="w-16 h-16 rounded-full bg-pm-purple/20 flex items-center justify-center">
-                      <CloudArrowUpIcon className="w-8 h-8 text-pm-purple" />
+                    <div className="w-16 h-16 rounded-full bg-nf-accent/20 flex items-center justify-center">
+                      <CloudArrowUpIcon className="w-8 h-8 text-nf-accent" />
                     </div>
                     <div>
-                      <p className="text-white font-medium">Click to upload thumbnail</p>
-                      <p className="text-sm text-gray-400">JPG, PNG, GIF up to 10MB</p>
+                      <p className="text-nf-text font-medium">Click to upload thumbnail</p>
+                      <p className="text-sm text-nf-text-muted">JPG, PNG, GIF up to 10MB</p>
                     </div>
                   </div>
                 )}
@@ -169,12 +226,12 @@ const ThumbnailSelector = ({ value, onChange }) => {
                 <img
                   src={uploadedPreview}
                   alt="Uploaded thumbnail"
-                  className="w-full max-h-48 object-contain rounded-lg bg-gray-800"
+                  className="w-full max-h-48 object-contain rounded-lg bg-nf-surface"
                 />
                 <button
                   type="button"
                   onClick={clearUpload}
-                  className="absolute top-2 right-2 p-1 bg-red-500 rounded-full hover:bg-red-600 transition-colors"
+                  className="absolute top-2 right-2 p-1 bg-nf-tertiary rounded-full hover:bg-nf-tertiary-hover transition-colors"
                 >
                   <XMarkIcon className="w-5 h-5 text-white" />
                 </button>
@@ -187,9 +244,9 @@ const ThumbnailSelector = ({ value, onChange }) => {
               onChange={handleFileUpload}
               className="hidden"
             />
-            <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-lg p-3">
-              <p className="text-xs text-gray-400">
-                📦 Images are uploaded to <span className="text-blue-300">Cloudinary</span> for secure, fast delivery
+            <div className="bg-nf-accent/10 border border-nf-accent/20 rounded-lg p-3">
+              <p className="text-xs text-nf-text-muted">
+                📦 Images are uploaded to <span className="text-nf-accent font-medium">Cloudinary</span> for secure, fast delivery
               </p>
             </div>
           </div>
@@ -237,4 +294,3 @@ const ThumbnailSelector = ({ value, onChange }) => {
 };
 
 export default ThumbnailSelector;
-

@@ -46,7 +46,7 @@ const WatchPage = () => {
     const { likeComment, dislikeComment, removeLike, removeDislike } = useCommentInteractionStore();
 
     // State
-    const [userRating, setUserRating] = useState(5);
+    const [userRating, setUserRating] = useState(0);
     const [newComment, setNewComment] = useState('');
     const [newReply, setNewReply] = useState('');
     const [showDescription, setShowDescription] = useState(false);
@@ -56,6 +56,7 @@ const WatchPage = () => {
     const [videoError, setVideoError] = useState(false);
     const [videoLoaded, setVideoLoaded] = useState(false);
     const [showRatingDropdown, setShowRatingDropdown] = useState(false);
+    const [hoverRating, setHoverRating] = useState(0);
 
     // Fetch video and comments
     useEffect(() => {
@@ -325,17 +326,37 @@ const WatchPage = () => {
                                             <span>Rate</span>
                                         </button>
                                         {showRatingDropdown && (
-                                            <div className="absolute top-full left-0 mt-2 p-2 rounded-lg bg-zinc-800 border border-zinc-700 shadow-xl z-20">
-                                                <div className="flex gap-1">
+                                            <div className="absolute top-full left-0 mt-2 p-3 rounded-lg bg-zinc-800 border border-zinc-700 shadow-xl z-20">
+                                                <div
+                                                    className="flex items-center gap-1"
+                                                    onMouseLeave={() => setHoverRating(0)}
+                                                >
                                                     {[1, 2, 3, 4, 5].map((star) => (
                                                         <button
                                                             key={star}
                                                             onClick={() => handleSubmitRating(star)}
+                                                            onMouseEnter={() => setHoverRating(star)}
                                                             className="p-2 hover:bg-zinc-700 rounded-lg transition-colors"
+                                                            title={`Rate ${star} star${star > 1 ? 's' : ''}`}
                                                         >
-                                                            <StarIcon className={`w-6 h-6 ${star <= userRating ? 'text-amber-400' : 'text-zinc-600'}`} />
+                                                            <StarIcon className={`w-6 h-6 transition-colors ${(hoverRating > 0 ? star <= hoverRating : star <= userRating)
+                                                                    ? 'text-amber-400'
+                                                                    : 'text-zinc-600'
+                                                                }`} />
                                                         </button>
                                                     ))}
+                                                    <button
+                                                        onClick={() => handleSubmitRating(0)}
+                                                        className="p-2 ml-1 hover:bg-zinc-700 rounded-lg transition-colors group"
+                                                        title="Remove rating"
+                                                    >
+                                                        <svg className="w-5 h-5 text-zinc-500 group-hover:text-rose-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                    </button>
+                                                    <span className="ml-2 text-sm font-medium text-zinc-300 min-w-[40px]">
+                                                        {hoverRating > 0 ? hoverRating : userRating}/5
+                                                    </span>
                                                 </div>
                                             </div>
                                         )}
