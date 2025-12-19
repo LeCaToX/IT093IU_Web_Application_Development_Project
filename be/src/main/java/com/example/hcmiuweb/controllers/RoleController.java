@@ -8,11 +8,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+// Updated to only allow Localhost and your specific Vercel production domain
 @CrossOrigin(origins = {
     "http://localhost:5173", 
-    "http://172.18.0.3:5173", 
-    "http://netflex.id.vn", 
-    "http://netflex.id.vn/api"
+    "https://it-093-iu-web-application-developme.vercel.app"
 })
 @RequestMapping("/api/roles")
 public class RoleController {
