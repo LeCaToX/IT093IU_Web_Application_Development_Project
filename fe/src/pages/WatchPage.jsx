@@ -9,12 +9,11 @@ import { useCommentStore } from "../stores/useCommentStore";
 import { useWatchListStore } from '../stores/useWatchListStore'
 import { useCommentInteractionStore } from '../stores/useCommentInteractionStore'
 
-import useVideoVolume from '../hooks/useVideoVolume';
-import { checkVideoExists } from '../utils/videoUtils';
 import { getImageSrc } from '../utils/imageUtils';
 import { useNavigateWithLoading } from '../hooks/useNavigateWithLoading';
 
 import OptimizedImage from '../components/OptimizedImage';
+import CustomVideoPlayer from '../components/CustomVideoPlayer';
 import {
     StarIcon,
     ChevronUpIcon,
@@ -34,34 +33,9 @@ import {
 
 import { formatDate } from "../config/format";
 
-// Helper function to detect YouTube URLs and extract video ID
-const getYouTubeVideoId = (url) => {
-    if (!url) return null;
-
-    // Match various YouTube URL formats
-    const patterns = [
-        /(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtu\.be\/|youtube\.com\/v\/|youtube\.com\/watch\?.*v=)([^&\s?]+)/,
-        /^([a-zA-Z0-9_-]{11})$/ // Just the video ID
-    ];
-
-    for (const pattern of patterns) {
-        const match = url.match(pattern);
-        if (match && match[1]) {
-            return match[1];
-        }
-    }
-    return null;
-};
-
-const isYouTubeUrl = (url) => {
-    if (!url) return false;
-    return url.includes('youtube.com') || url.includes('youtu.be');
-};
-
 const WatchPage = () => {
     const { id } = useParams();
     const navigateWithLoading = useNavigateWithLoading();
-    const { videoRef, setDefaultVolume } = useVideoVolume(0.5);
 
     const { user } = useUserStore();
     const { video, videos, loading, fetchVideo, fetchAllVideos } = useVideoStore();
@@ -95,31 +69,6 @@ const WatchPage = () => {
     useEffect(() => {
         fetchCommentByVideo(id);
     }, [id, fetchCommentByVideo]);
-
-    useEffect(() => {
-        if (video && videoRef.current) {
-            const validateAndLoadVideo = async () => {
-                try {
-                    const validation = await checkVideoExists(video.url);
-                    if (validation.exists) {
-                        setTimeout(() => {
-                            if (videoRef.current) {
-                                videoRef.current.src = validation.path;
-                                videoRef.current.load();
-                            }
-                        }, 100);
-                    } else {
-                        setVideoError(true);
-                    }
-                } catch (error) {
-                    setTimeout(() => {
-                        if (videoRef.current) videoRef.current.load();
-                    }, 100);
-                }
-            };
-            validateAndLoadVideo();
-        }
-    }, [video, videoRef]);
 
     useEffect(() => {
         if (video && user) {
@@ -235,13 +184,9 @@ const WatchPage = () => {
     const retryVideoLoad = () => {
         setVideoError(false);
         setVideoLoaded(false);
-        if (videoRef.current && video?.url) {
-            // Handle both absolute paths (/videos/...) and relative paths (filename.mp4)
-            const videoSrc = video.url.startsWith('http') || video.url.startsWith('/')
-                ? video.url
-                : `/videos/${video.url}`;
-            videoRef.current.src = videoSrc;
-            videoRef.current.load();
+        // Force re-render of video player by updating key
+        if (video) {
+            fetchVideo(id);
         }
     };
 
@@ -287,42 +232,17 @@ const WatchPage = () => {
                                         Retry
                                     </button>
                                 </div>
-                            ) : isYouTubeUrl(video?.url) ? (
-                                // YouTube Embed Player
-                                <iframe
-                                    className="w-full h-full"
-                                    src={`https://www.youtube.com/embed/${getYouTubeVideoId(video?.url)}?autoplay=0&rel=0&modestbranding=1`}
-                                    title={video?.title || 'YouTube video'}
-                                    frameBorder="0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                    allowFullScreen
+                            ) : video?.url ? (
+                                <CustomVideoPlayer
+                                    url={video.url.startsWith('http') || video.url.startsWith('/') 
+                                        ? video.url 
+                                        : `/videos/${video.url}`}
+                                    title={video.title}
+                                    onError={handleVideoError}
+                                    onReady={handleVideoLoad}
+                                    className="rounded-xl"
                                 />
-                            ) : (
-                                // Native Video Player (Cloudinary, local, etc.)
-                                <>
-                                    {!videoLoaded && (
-                                        <div className="absolute inset-0 flex items-center justify-center z-10 bg-zinc-900">
-                                            <div className="flex flex-col items-center gap-4">
-                                                <div className="w-12 h-12 border-2 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-                                                <p className="text-zinc-400 text-sm">Loading...</p>
-                                            </div>
-                                        </div>
-                                    )}
-                                    <video
-                                        ref={videoRef}
-                                        className="w-full h-full object-contain bg-black"
-                                        controls
-                                        preload="metadata"
-                                        playsInline
-                                        onLoadedData={handleVideoLoad}
-                                        onCanPlay={handleVideoLoad}
-                                        onError={handleVideoError}
-                                        onLoadedMetadata={setDefaultVolume}
-                                        key={video?.id}
-                                        src={video?.url?.startsWith('http') || video?.url?.startsWith('/') ? video.url : `/videos/${video?.url}`}
-                                    />
-                                </>
-                            )}
+                            ) : null}
                         </div>
 
                         {/* Video Info */}

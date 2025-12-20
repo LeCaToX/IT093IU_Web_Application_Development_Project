@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { BookmarkIcon } from '@heroicons/react/24/outline';
 import { PlayIcon, ChevronDownIcon } from '@heroicons/react/24/solid';
 import OptimizedImage from './OptimizedImage';
+import CustomVideoPlayer from './CustomVideoPlayer';
 import { useVideoStore } from '../stores/useVideoStore';
 import { useCategoryStore } from '../stores/useCategoryStore';
 import { getImageSrc } from '../utils/imageUtils';
@@ -383,26 +384,14 @@ const VideoCarousel = () => {
                         {/* Video */}
                         <div className={`relative w-full transition-all duration-500 ${isClosing ? 'animate-slide-down' : 'animate-slide-up'
                             }`} style={{ paddingBottom: '56.25%' }}>
-                            {carouselVideos[trailerVideoIndex].trailerUrl?.includes('youtube.com') ||
-                                carouselVideos[trailerVideoIndex].trailerUrl?.includes('youtu.be') ||
-                                carouselVideos[trailerVideoIndex].trailerUrl?.includes('vimeo.com') ? (
-                                <iframe
-                                    className="absolute inset-0 w-full h-full"
-                                    src={carouselVideos[trailerVideoIndex].trailerUrl}
-                                    title={`${carouselVideos[trailerVideoIndex].title} Trailer`}
-                                    frameBorder="0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                ></iframe>
-                            ) : (
-                                <video
-                                    className="absolute inset-0 w-full h-full"
-                                    src={carouselVideos[trailerVideoIndex].trailerUrl}
-                                    controls
-                                    autoPlay
-                                >
-                                    Your browser does not support the video tag.
-                                </video>
+                            {carouselVideos[trailerVideoIndex].trailerUrl && (
+                                <div className="absolute inset-0 w-full h-full">
+                                    <CustomVideoPlayer
+                                        url={carouselVideos[trailerVideoIndex].trailerUrl}
+                                        title={`${carouselVideos[trailerVideoIndex].title} Trailer`}
+                                        playing={false}
+                                    />
+                                </div>
                             )}
                         </div>
 
