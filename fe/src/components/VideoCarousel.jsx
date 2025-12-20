@@ -65,7 +65,7 @@ const VideoCarousel = () => {
             setCurrent(0);
         }
     }, [carouselVideos.length, current]);
-    
+
     const resetTimeout = () => {
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
@@ -83,9 +83,9 @@ const VideoCarousel = () => {
     const scrollToNextSection = () => {
         const nextSection = document.querySelector('[data-video-section]');
         if (nextSection) {
-            nextSection.scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'start' 
+            nextSection.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
             });
         }
     };
@@ -99,17 +99,17 @@ const VideoCarousel = () => {
 
     const handleScroll = (event) => {
         const scrollThreshold = 50;
-        
+
         if (!isScrolling) {
             const currentScrollY = window.scrollY;
             const carouselHeight = carouselRef.current?.offsetHeight || 0;
-            
+
             if (event.deltaY > scrollThreshold) {
                 if (currentScrollY < carouselHeight * 0.8) {
                     event.preventDefault();
                     setIsScrolling(true);
                     scrollToNextSection();
-                    
+
                     if (scrollTimeoutRef.current) {
                         clearTimeout(scrollTimeoutRef.current);
                     }
@@ -123,7 +123,7 @@ const VideoCarousel = () => {
                     event.preventDefault();
                     setIsScrolling(true);
                     scrollToCarousel();
-                    
+
                     if (scrollTimeoutRef.current) {
                         clearTimeout(scrollTimeoutRef.current);
                     }
@@ -147,14 +147,14 @@ const VideoCarousel = () => {
 
     useEffect(() => {
         if (carouselVideos.length === 0) return;
-        
+
         resetTimeout();
         timeoutRef.current = setTimeout(() => {
             setCurrent((prevIndex) =>
                 prevIndex === carouselVideos.length - 1 ? 0 : prevIndex + 1
             );
         }, 8000);
-    
+
         return () => {
             resetTimeout();
         };
@@ -197,14 +197,14 @@ const VideoCarousel = () => {
         const handleWheelEvent = (event) => {
             handleScroll(event);
         };
-        
+
         document.addEventListener('wheel', handleWheelEvent, { passive: false });
-        
+
         return () => {
             document.removeEventListener('wheel', handleWheelEvent);
         };
     }, []);
-    
+
     useEffect(() => {
         return () => {
             if (scrollTimeoutRef.current) {
@@ -234,13 +234,12 @@ const VideoCarousel = () => {
         <div ref={carouselRef} className="w-full overflow-hidden relative aspect-[16/9] max-h-[100vh]">
             {/* Slides */}
             {carouselVideos.map((video, index) => (
-                <div 
-                    key={video.id} 
-                    className={`absolute inset-0 w-full h-full transition-all duration-1000 ease-in-out transform-gpu ${
-                        current === index 
-                            ? 'opacity-100 scale-100 z-10' 
+                <div
+                    key={video.id}
+                    className={`absolute inset-0 w-full h-full transition-all duration-1000 ease-in-out transform-gpu ${current === index
+                            ? 'opacity-100 scale-100 z-10'
                             : 'opacity-0 scale-105 z-0'
-                    }`}
+                        }`}
                 >
                     <div className="relative w-full h-full bg-nf-bg">
                         <img
@@ -269,13 +268,12 @@ const VideoCarousel = () => {
                     <div className="relative h-[100px] lg:h-[600px] w-full max-w-2xl ml-8 sm:ml-12 md:ml-16 lg:ml-20 xl:ml-24 2xl:ml-32">
                         {/* Text content for each slide */}
                         {carouselVideos.map((video, index) => (
-                            <div 
-                                key={index} 
-                                className={`absolute inset-0 transition-all duration-700 ease-out transform ${
-                                    current === index 
-                                        ? 'opacity-100 translate-y-0 scale-100' 
+                            <div
+                                key={index}
+                                className={`absolute inset-0 transition-all duration-700 ease-out transform ${current === index
+                                        ? 'opacity-100 translate-y-0 scale-100'
                                         : 'opacity-0 translate-y-8 scale-95'
-                                }`}
+                                    }`}
                             >
                                 <h1 className="text-4xl md:text-6xl font-bold text-nf-text mb-4 drop-shadow-lg">
                                     {video.title}
@@ -290,7 +288,9 @@ const VideoCarousel = () => {
                                 </ul>
 
                                 <p className="hidden lg:block text-lg text-nf-text-secondary mb-8 max-w-md">
-                                    {video.description}
+                                    {video.description && video.description.length > 120
+                                        ? `${video.description.substring(0, 120)}...`
+                                        : video.description}
                                 </p>
                             </div>
                         ))}
@@ -298,7 +298,7 @@ const VideoCarousel = () => {
                         {/* Action buttons - fixed position */}
                         <div className="hidden md:block absolute top-40 lg:top-52 left-0 w-full">
                             <div className="flex items-center gap-3 mb-10">
-                                <Link 
+                                <Link
                                     to={`/watch/${carouselVideos[current].id}`}
                                     className="nf-btn nf-btn-primary"
                                 >
@@ -306,7 +306,7 @@ const VideoCarousel = () => {
                                     Watch Now
                                 </Link>
 
-                                <button 
+                                <button
                                     onClick={() => {
                                         setTrailerVideoIndex(current);
                                         setShowTrailer(true);
@@ -327,11 +327,10 @@ const VideoCarousel = () => {
                                 {carouselVideos.map((_, index) => (
                                     <button
                                         key={index}
-                                        className={`h-1.5 rounded-full transition-all duration-500 cursor-pointer ${
-                                            current === index 
-                                                ? "w-10 bg-nf-accent" 
+                                        className={`h-1.5 rounded-full transition-all duration-500 cursor-pointer ${current === index
+                                                ? "w-10 bg-nf-accent"
                                                 : "w-6 bg-nf-text-muted/40 hover:bg-nf-text-muted"
-                                        }`}
+                                            }`}
                                         onClick={() => {
                                             setCurrent(index);
                                             resetTimeout();
@@ -364,16 +363,14 @@ const VideoCarousel = () => {
 
             {/* Trailer Modal */}
             {showTrailer && carouselVideos.length > 0 && carouselVideos[trailerVideoIndex] && (
-                <div 
-                    className={`fixed inset-0 bg-nf-bg/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all duration-300 ${
-                        isClosing ? 'animate-fade-out' : 'animate-fade-in'
-                    }`}
+                <div
+                    className={`fixed inset-0 bg-nf-bg/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all duration-300 ${isClosing ? 'animate-fade-out' : 'animate-fade-in'
+                        }`}
                     onClick={closeTrailer}
                 >
-                    <div 
-                        className={`relative nf-card-static overflow-hidden max-w-4xl w-full max-h-[80vh] transition-all duration-400 ${
-                            isClosing ? 'animate-scale-down' : 'animate-scale-up'
-                        }`}
+                    <div
+                        className={`relative nf-card-static overflow-hidden max-w-4xl w-full max-h-[80vh] transition-all duration-400 ${isClosing ? 'animate-scale-down' : 'animate-scale-up'
+                            }`}
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Close button */}
@@ -387,12 +384,11 @@ const VideoCarousel = () => {
                         </button>
 
                         {/* Video */}
-                        <div className={`relative w-full transition-all duration-500 ${
-                            isClosing ? 'animate-slide-down' : 'animate-slide-up'
-                        }`} style={{ paddingBottom: '56.25%' }}>
-                            {carouselVideos[trailerVideoIndex].trailerUrl?.includes('youtube.com') || 
-                             carouselVideos[trailerVideoIndex].trailerUrl?.includes('youtu.be') ||
-                             carouselVideos[trailerVideoIndex].trailerUrl?.includes('vimeo.com') ? (
+                        <div className={`relative w-full transition-all duration-500 ${isClosing ? 'animate-slide-down' : 'animate-slide-up'
+                            }`} style={{ paddingBottom: '56.25%' }}>
+                            {carouselVideos[trailerVideoIndex].trailerUrl?.includes('youtube.com') ||
+                                carouselVideos[trailerVideoIndex].trailerUrl?.includes('youtu.be') ||
+                                carouselVideos[trailerVideoIndex].trailerUrl?.includes('vimeo.com') ? (
                                 <iframe
                                     className="absolute inset-0 w-full h-full"
                                     src={carouselVideos[trailerVideoIndex].trailerUrl}
@@ -414,9 +410,8 @@ const VideoCarousel = () => {
                         </div>
 
                         {/* Title bar */}
-                        <div className={`p-4 bg-nf-surface border-t border-nf-border transition-all duration-500 ${
-                            isClosing ? 'animate-slide-down-delayed' : 'animate-slide-up-delayed'
-                        }`}>
+                        <div className={`p-4 bg-nf-surface border-t border-nf-border transition-all duration-500 ${isClosing ? 'animate-slide-down-delayed' : 'animate-slide-up-delayed'
+                            }`}>
                             <h3 className="text-nf-text text-xl font-bold">
                                 {carouselVideos[trailerVideoIndex].title} - Trailer
                             </h3>
