@@ -34,6 +34,30 @@ import {
 
 import { formatDate } from "../config/format";
 
+// Helper function to detect YouTube URLs and extract video ID
+const getYouTubeVideoId = (url) => {
+    if (!url) return null;
+
+    // Match various YouTube URL formats
+    const patterns = [
+        /(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtu\.be\/|youtube\.com\/v\/|youtube\.com\/watch\?.*v=)([^&\s?]+)/,
+        /^([a-zA-Z0-9_-]{11})$/ // Just the video ID
+    ];
+
+    for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match && match[1]) {
+            return match[1];
+        }
+    }
+    return null;
+};
+
+const isYouTubeUrl = (url) => {
+    if (!url) return false;
+    return url.includes('youtube.com') || url.includes('youtu.be');
+};
+
 const WatchPage = () => {
     const { id } = useParams();
     const navigateWithLoading = useNavigateWithLoading();
@@ -263,7 +287,18 @@ const WatchPage = () => {
                                         Retry
                                     </button>
                                 </div>
+                            ) : isYouTubeUrl(video?.url) ? (
+                                // YouTube Embed Player
+                                <iframe
+                                    className="w-full h-full"
+                                    src={`https://www.youtube.com/embed/${getYouTubeVideoId(video?.url)}?autoplay=0&rel=0&modestbranding=1`}
+                                    title={video?.title || 'YouTube video'}
+                                    frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    allowFullScreen
+                                />
                             ) : (
+                                // Native Video Player (Cloudinary, local, etc.)
                                 <>
                                     {!videoLoaded && (
                                         <div className="absolute inset-0 flex items-center justify-center z-10 bg-zinc-900">
