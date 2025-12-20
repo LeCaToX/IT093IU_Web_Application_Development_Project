@@ -237,8 +237,8 @@ const VideoCarousel = () => {
                 <div
                     key={video.id}
                     className={`absolute inset-0 w-full h-full transition-all duration-1000 ease-in-out transform-gpu ${current === index
-                            ? 'opacity-100 scale-100 z-10'
-                            : 'opacity-0 scale-105 z-0'
+                        ? 'opacity-100 scale-100 z-10'
+                        : 'opacity-0 scale-105 z-0'
                         }`}
                 >
                     <div className="relative w-full h-full bg-nf-bg">
@@ -265,21 +265,18 @@ const VideoCarousel = () => {
             {/* Content overlay */}
             <div className="absolute inset-0 z-20">
                 <div className="h-full flex items-center">
-                    <div className="relative h-[100px] lg:h-[600px] w-full max-w-2xl ml-8 sm:ml-12 md:ml-16 lg:ml-20 xl:ml-24 2xl:ml-32">
+                    <div className="relative w-full max-w-2xl ml-8 sm:ml-12 md:ml-16 lg:ml-20 xl:ml-24 2xl:ml-32">
                         {/* Text content for each slide */}
                         {carouselVideos.map((video, index) => (
                             <div
                                 key={index}
-                                className={`absolute inset-0 transition-all duration-700 ease-out transform ${current === index
-                                        ? 'opacity-100 translate-y-0 scale-100'
-                                        : 'opacity-0 translate-y-8 scale-95'
-                                    }`}
+                                className={`${current === index ? 'block' : 'hidden'} transition-all duration-700 ease-out`}
                             >
-                                <h1 className="text-4xl md:text-6xl font-bold text-nf-text mb-4 drop-shadow-lg">
+                                <h1 className="text-4xl md:text-6xl font-bold text-nf-text mb-4 drop-shadow-lg line-clamp-2">
                                     {video.title}
                                 </h1>
 
-                                <ul className="flex gap-2 mb-4">
+                                <ul className="flex flex-wrap gap-2 mb-4">
                                     {video.tags.map((tag) => (
                                         <li key={tag} className="nf-tag">
                                             {tag}
@@ -287,7 +284,7 @@ const VideoCarousel = () => {
                                     ))}
                                 </ul>
 
-                                <p className="hidden lg:block text-lg text-nf-text-secondary mb-8 max-w-md">
+                                <p className="hidden lg:block text-lg text-nf-text-secondary mb-6 max-w-md line-clamp-1">
                                     {video.description && video.description.length > 120
                                         ? `${video.description.substring(0, 120)}...`
                                         : video.description}
@@ -295,9 +292,9 @@ const VideoCarousel = () => {
                             </div>
                         ))}
 
-                        {/* Action buttons - fixed position */}
-                        <div className="hidden md:block absolute top-40 lg:top-52 left-0 w-full">
-                            <div className="flex items-center gap-3 mb-10">
+                        {/* Action buttons */}
+                        <div className="hidden md:block mt-4">
+                            <div className="flex items-center gap-3 mb-6">
                                 <Link
                                     to={`/watch/${carouselVideos[current].id}`}
                                     className="nf-btn nf-btn-primary"
@@ -328,8 +325,8 @@ const VideoCarousel = () => {
                                     <button
                                         key={index}
                                         className={`h-1.5 rounded-full transition-all duration-500 cursor-pointer ${current === index
-                                                ? "w-10 bg-nf-accent"
-                                                : "w-6 bg-nf-text-muted/40 hover:bg-nf-text-muted"
+                                            ? "w-10 bg-nf-accent"
+                                            : "w-6 bg-nf-text-muted/40 hover:bg-nf-text-muted"
                                             }`}
                                         onClick={() => {
                                             setCurrent(index);
