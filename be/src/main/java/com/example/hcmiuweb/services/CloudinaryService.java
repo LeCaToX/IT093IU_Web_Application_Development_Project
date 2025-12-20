@@ -21,21 +21,24 @@ public class CloudinaryService {
 
     /**
      * Upload an image to Cloudinary and return the URL
-     * @param file The image file to upload
-     * @param folder The folder to store the image in Cloudinary (e.g., "avatars", "videos")
-     * @return Map containing upload results, including "secure_url" for the image URL
+     * 
+     * @param file   The image file to upload
+     * @param folder The folder to store the image in Cloudinary (e.g., "avatars",
+     *               "videos")
+     * @return Map containing upload results, including "secure_url" for the image
+     *         URL
      * @throws IOException If the upload fails
      */
     public Map uploadImage(MultipartFile file, String folder) throws IOException {
         return cloudinary.uploader().upload(file.getBytes(),
-            ObjectUtils.asMap(
-                "folder", folder,
-                "resource_type", "auto"
-            ));
+                ObjectUtils.asMap(
+                        "folder", folder,
+                        "resource_type", "auto"));
     }
 
     /**
      * Delete an image from Cloudinary
+     * 
      * @param publicId The public ID of the image to delete
      * @return Map containing deletion results
      * @throws IOException If the deletion fails

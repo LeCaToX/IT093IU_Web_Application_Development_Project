@@ -340,8 +340,8 @@ const WatchPage = () => {
                                                             title={`Rate ${star} star${star > 1 ? 's' : ''}`}
                                                         >
                                                             <StarIcon className={`w-6 h-6 transition-colors ${(hoverRating > 0 ? star <= hoverRating : star <= userRating)
-                                                                    ? 'text-amber-400'
-                                                                    : 'text-zinc-600'
+                                                                ? 'text-amber-400'
+                                                                : 'text-zinc-600'
                                                                 }`} />
                                                         </button>
                                                     ))}

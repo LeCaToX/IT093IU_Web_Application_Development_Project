@@ -6,7 +6,7 @@
 @theme {
     /* ===== NEXFLIXX DESIGN SYSTEM ===== */
     /* Cinematic dark theme with warm amber accent */
-    
+
     /* Background hierarchy - Deep cinematic darks */
     --color-nf-bg: #09090b;
     --color-nf-bg-elevated: #0f0f11;
@@ -14,46 +14,46 @@
     --color-nf-surface-hover: #27272a;
     --color-nf-elevated: #1f1f23;
     --color-nf-overlay: rgba(9, 9, 11, 0.85);
-    
+
     /* Primary accent - Warm amber/gold (replaces purple) */
     --color-nf-accent: #f59e0b;
     --color-nf-accent-hover: #fbbf24;
     --color-nf-accent-muted: rgba(245, 158, 11, 0.15);
     --color-nf-accent-glow: rgba(245, 158, 11, 0.25);
-    
+
     /* Secondary accent - Electric cyan for contrast */
     --color-nf-secondary: #06b6d4;
     --color-nf-secondary-hover: #22d3ee;
     --color-nf-secondary-muted: rgba(6, 182, 212, 0.15);
-    
+
     /* Tertiary - Rose for special highlights */
     --color-nf-tertiary: #f43f5e;
     --color-nf-tertiary-hover: #fb7185;
-    
+
     /* Text hierarchy */
     --color-nf-text: #fafafa;
     --color-nf-text-secondary: #a1a1aa;
     --color-nf-text-muted: #71717a;
     --color-nf-text-dim: #52525b;
-    
+
     /* Borders & dividers */
     --color-nf-border: #27272a;
     --color-nf-border-hover: #3f3f46;
     --color-nf-border-focus: #52525b;
-    
+
     /* Status colors */
     --color-nf-success: #10b981;
     --color-nf-error: #f43f5e;
     --color-nf-warning: #f59e0b;
     --color-nf-info: #06b6d4;
-    
+
     /* Legacy colors - kept for backward compatibility during migration */
     --color-pm-gray: #18181b;
     --color-se-gray: #27272a;
     --color-th-gray: #a1a1aa;
     --color-pm-purple: #f59e0b;
     --color-pm-purple-hover: #fbbf24;
-    
+
     /* Gradients */
     --gradient-nf-card: linear-gradient(135deg, #18181b 0%, #1f1f23 100%);
     --gradient-nf-glow: radial-gradient(ellipse at top, rgba(245, 158, 11, 0.08) 0%, transparent 50%);
@@ -70,7 +70,12 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     font-family: 'Sora', system-ui, -apple-system, sans-serif;
 }
 
@@ -362,7 +367,7 @@ h1, h2, h3, h4, h5, h6 {
         -ms-overflow-style: none;
         scrollbar-width: none;
     }
-    
+
     /* Text gradient */
     .nf-text-gradient {
         background: linear-gradient(135deg, var(--color-nf-accent) 0%, var(--color-nf-accent-hover) 100%);
@@ -370,16 +375,16 @@ h1, h2, h3, h4, h5, h6 {
         -webkit-text-fill-color: transparent;
         background-clip: text;
     }
-    
+
     /* Glow effects */
     .nf-glow {
         box-shadow: 0 0 40px var(--color-nf-accent-glow);
     }
-    
+
     .nf-glow-secondary {
         box-shadow: 0 0 40px var(--color-nf-secondary-muted);
     }
-    
+
     /* Modal Animations */
     .animate-fade-in {
         animation: fadeIn 0.3s ease-out forwards;
@@ -420,7 +425,7 @@ h1, h2, h3, h4, h5, h6 {
     .animate-bounce-gentle {
         animation: bounceGentle 2s infinite;
     }
-    
+
     .animate-pulse-glow {
         animation: pulseGlow 3s ease-in-out infinite;
     }
@@ -510,7 +515,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @keyframes pulseGlow {
-    0%, 100% {
+
+    0%,
+    100% {
         box-shadow: 0 0 20px var(--color-nf-accent-muted);
     }
 
@@ -523,18 +530,17 @@ h1, h2, h3, h4, h5, h6 {
     0% {
         background-position: -200% 0;
     }
+
     100% {
         background-position: 200% 0;
     }
 }
 
 .animate-shimmer {
-    background: linear-gradient(
-        90deg,
-        var(--color-nf-surface) 25%,
-        var(--color-nf-surface-hover) 50%,
-        var(--color-nf-surface) 75%
-    );
+    background: linear-gradient(90deg,
+            var(--color-nf-surface) 25%,
+            var(--color-nf-surface-hover) 50%,
+            var(--color-nf-surface) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
 }
