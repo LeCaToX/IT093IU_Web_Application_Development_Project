@@ -389,24 +389,13 @@ const CustomVideoPlayer = ({
         >
             {/* Video Player */}
             <div className="relative w-full h-full">
-                <style>{`
-                    /* Hide YouTube UI elements */
-                    iframe[src*="youtube.com"] ~ * .ytp-title,
-                    iframe[src*="youtu.be"] ~ * .ytp-title,
-                    .ytp-title,
-                    .ytp-title-link,
-                    .ytp-title-text,
-                    .ytp-share-button,
-                    .ytp-share-button-visible,
-                    .ytp-ce-element,
-                    .ytp-watermark,
-                    .ytp-chrome-top,
-                    .ytp-show-cards-title {
-                        display: none !important;
-                        opacity: 0 !important;
-                        visibility: hidden !important;
-                    }
-                `}</style>
+                {/* Overlay to hide YouTube top chrome bar */}
+                {isYouTubeUrl && (
+                    <div 
+                        className="absolute top-0 left-0 right-0 h-12 bg-black z-30 pointer-events-none"
+                        style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 50%, transparent 100%)' }}
+                    />
+                )}
                 <ReactPlayer
                     ref={playerRef}
                     url={url}
@@ -521,9 +510,16 @@ const CustomVideoPlayer = ({
                         onMouseLeave={() => setShowVolumeSlider(false)}
                     >
                         <div className="relative">
+                            {/* Invisible bridge area to connect button and slider - prevents gap */}
+                            {showVolumeSlider && (
+                                <div 
+                                    className="absolute bottom-full left-1/2 -translate-x-1/2 w-10 h-2 pointer-events-auto"
+                                    onMouseEnter={() => setShowVolumeSlider(true)}
+                                />
+                            )}
                             <button
                                 onClick={handleMuteToggle}
-                                className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                                className="p-2 hover:bg-white/10 rounded-full transition-colors relative z-10"
                                 aria-label={muted ? 'Unmute' : 'Mute'}
                             >
                                 {muted || volume === 0 ? (
@@ -537,9 +533,10 @@ const CustomVideoPlayer = ({
                             {showVolumeSlider && (
                                 <div
                                     ref={volumeBarRef}
-                                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-10 h-28 bg-black/90 rounded flex items-center justify-center p-2 cursor-pointer"
+                                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-10 h-28 bg-black/90 rounded flex items-center justify-center p-2 cursor-pointer z-20"
                                     onClick={handleVolumeSliderChange}
                                     onMouseDown={handleVolumeMouseDown}
+                                    onMouseEnter={() => setShowVolumeSlider(true)}
                                 >
                                     <div className="w-1 h-full bg-white/20 rounded-full relative">
                                         <div
@@ -547,8 +544,11 @@ const CustomVideoPlayer = ({
                                             style={{ height: `${(muted ? 0 : volume) * 100}%` }}
                                         />
                                         <div
-                                            className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3 h-3 bg-white rounded-full cursor-grab active:cursor-grabbing"
-                                            style={{ bottom: `${(muted ? 0 : volume) * 100}%`, transform: 'translate(-50%, 50%)' }}
+                                            className="absolute left-1/2 w-3 h-3 bg-white rounded-full cursor-grab active:cursor-grabbing shadow-lg z-10"
+                                            style={{ 
+                                                bottom: `${(muted ? 0 : volume) * 100}%`,
+                                                transform: 'translate(-50%, 50%)'
+                                            }}
                                         />
                                     </div>
                                 </div>
