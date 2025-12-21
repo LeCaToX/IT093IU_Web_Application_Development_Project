@@ -287,6 +287,55 @@ h6 {
     min-height: 100vh;
 }
 
+/* YouTube player UI hiding */
+iframe[src*="youtube.com"],
+iframe[src*="youtu.be"] {
+    pointer-events: auto;
+}
+
+/* Hide YouTube title and share button overlay */
+.ytp-title,
+.ytp-title-link,
+.ytp-title-text,
+.ytp-share-button,
+.ytp-share-button-visible,
+.ytp-ce-element,
+.ytp-watermark {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* Hide YouTube top chrome bar completely */
+.ytp-chrome-top,
+.ytp-show-cards-title,
+.ytp-chrome-top-buttons,
+.ytp-title-channel,
+.ytp-title-beacon,
+.ytp-title-channel-logo,
+.ytp-title-expanded-overlay,
+.ytp-title-expanded-heading,
+.ytp-title-expanded-title,
+.ytp-title-expanded-subtitle,
+.ytp-button.ytp-sb,
+.ytp-sb-subscribe,
+.ytp-sb-unsubscribe,
+.ytp-title-notifications,
+.ytp-search-button,
+.ytp-watch-later-button,
+.ytp-share-button,
+.ytp-copylink-button,
+.ytp-playlist-menu-button,
+.ytp-cards-button,
+.ytp-overflow-button {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+}
+
 .watch-glass {
     background: rgba(24, 24, 27, 0.8);
     backdrop-filter: blur(16px);
