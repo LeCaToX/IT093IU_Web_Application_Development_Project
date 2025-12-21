@@ -63,16 +63,16 @@ public class AuthController {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication != null && authentication.isAuthenticated()) {
-                UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();                return ResponseEntity.ok(new JwtResponse(
-                    null, // Don't send token in response
-                    userDetails.getId(),
-                    userDetails.getUsername(),
-                    userDetails.getEmail(),
-                    userDetails.getAvatar(),
-                    userDetails.getAuthorities().stream()
-                        .map(item -> item.getAuthority())
-                        .collect(Collectors.toList())
-                ));
+                UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+                return ResponseEntity.ok(new JwtResponse(
+                        null, // Don't send token in response
+                        userDetails.getId(),
+                        userDetails.getUsername(),
+                        userDetails.getEmail(),
+                        userDetails.getAvatar(),
+                        userDetails.getAuthorities().stream()
+                                .map(item -> item.getAuthority())
+                                .collect(Collectors.toList())));
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         } catch (Exception e) {
@@ -81,12 +81,14 @@ public class AuthController {
     }
 
     @PostMapping(value = "/signin", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest,
+            HttpServletResponse response) {
         try {
             // Validate request is not null
             if (loginRequest == null || loginRequest.getUsername() == null || loginRequest.getPassword() == null) {
                 logger.error("Login request is missing required fields");
-                return ResponseEntity.badRequest().body(new MessageResponse("Error: Username and password are required"));
+                return ResponseEntity.badRequest()
+                        .body(new MessageResponse("Error: Username and password are required"));
             }
 
             logger.info("Authentication attempt for user: {}", loginRequest.getUsername());
@@ -114,26 +116,28 @@ public class AuthController {
 
             logger.info("User {} successfully authenticated", loginRequest.getUsername());
             return ResponseEntity.ok(new JwtResponse(
-                null, // Don't send token in response
-                userDetails.getId(),
-                userDetails.getUsername(),
-                userDetails.getEmail(),
-                userDetails.getAvatar(),
-                roles
-            ));
+                    null, // Don't send token in response
+                    userDetails.getId(),
+                    userDetails.getUsername(),
+                    userDetails.getEmail(),
+                    userDetails.getAvatar(),
+                    roles));
         } catch (BadCredentialsException e) {
-            logger.error("Authentication failed for user: {}", loginRequest != null ? loginRequest.getUsername() : "unknown");
+            logger.error("Authentication failed for user: {}",
+                    loginRequest != null ? loginRequest.getUsername() : "unknown");
             return ResponseEntity.badRequest().body(new MessageResponse("Error: Invalid username or password"));
         } catch (Exception e) {
             logger.error("Unexpected error during authentication: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: Authentication failed. Please check your credentials and try again."));
+            return ResponseEntity.badRequest().body(
+                    new MessageResponse("Error: Authentication failed. Please check your credentials and try again."));
         }
     }
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest signUpRequest) {
         try {
-            logger.info("Registration attempt for username: {}, email: {}", signUpRequest.getUsername(), signUpRequest.getEmail());
+            logger.info("Registration attempt for username: {}, email: {}", signUpRequest.getUsername(),
+                    signUpRequest.getEmail());
 
             if (userRepository.existsByUsername(signUpRequest.getUsername())) {
                 return ResponseEntity
@@ -202,57 +206,6 @@ public class AuthController {
         } catch (Exception e) {
             logger.error("Logout error: {}", e.getMessage());
             return ResponseEntity.badRequest().body(new MessageResponse("Error during logout: " + e.getMessage()));
-        }
-    }
-
-    @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@Valid @RequestBody PasswordResetRequest request) {
-        try {
-            logger.info("Password reset requested for email: {}", request.getEmail());
-
-            User user = userRepository.findByEmail(request.getEmail())
-                    .orElseThrow(() -> new RuntimeException("User not found with this email"));
-
-            // Generate reset token
-            String resetToken = UUID.randomUUID().toString();
-            user.setResetToken(resetToken);
-            user.setResetTokenExpiry(LocalDateTime.now().plusMinutes(15));
-            userRepository.save(user);
-
-            // Send email
-            emailService.sendPasswordResetEmail(user.getEmail(), resetToken);
-
-            logger.info("Password reset email sent to: {}", request.getEmail());
-            return ResponseEntity.ok(new MessageResponse("Password reset email sent successfully"));
-        } catch (Exception e) {
-            logger.error("Error in forgot password: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: " + e.getMessage()));
-        }
-    }
-
-    @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@Valid @RequestBody NewPasswordRequest request) {
-        try {
-            logger.info("Password reset attempt with token");
-
-            User user = userRepository.findByResetToken(request.getToken())
-                    .orElseThrow(() -> new RuntimeException("Invalid reset token"));
-
-            if (user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
-                throw new RuntimeException("Reset token has expired");
-            }
-
-            // Update password
-            user.setPassword(encoder.encode(request.getNewPassword()));
-            user.setResetToken(null);
-            user.setResetTokenExpiry(null);
-            userRepository.save(user);
-
-            logger.info("Password reset successful for user: {}", user.getUsername());
-            return ResponseEntity.ok(new MessageResponse("Password has been reset successfully"));
-        } catch (Exception e) {
-            logger.error("Error in reset password: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: " + e.getMessage()));
         }
     }
 }

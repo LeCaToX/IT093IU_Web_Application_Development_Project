@@ -11,7 +11,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -44,36 +43,6 @@ public class UserController {
         return userService.findUserById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    }
-
-    @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        if (user.getPassword() == null || user.getPassword().isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-        if (user.getRegistrationDate() == null) {
-            user.setRegistrationDate(LocalDateTime.now());
-        }
-        if (user.getAvatar() == null || user.getAvatar().isEmpty()) {
-            user.setAvatar("/resources/static/images/avatars/default-avatar.jpg");
-        }
-
-        Role resolvedRole;
-        if (user.getRole() == null) {
-            resolvedRole = roleService.findRoleByName("ROLE_USER")
-                    .orElseThrow(() -> new RuntimeException("Default role not found"));
-        } else {
-            if (user.getRole().getId() != null) {
-                resolvedRole = roleService.findRoleById(user.getRole().getId())
-                        .orElseThrow(() -> new RuntimeException("Role not found"));
-            } else {
-                resolvedRole = roleService.findRoleByName(user.getRole().getRoleName())
-                        .orElseThrow(() -> new RuntimeException("Role not found"));
-            }
-        }
-        user.setRole(resolvedRole);
-        User savedUser = userService.createUser(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
     }
 
     @PutMapping("/{id}/role")

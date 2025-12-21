@@ -9,7 +9,7 @@ export const useWatchListStore = create((set) => ({
 	error: null,
 
 	setWatchList: (watchList) => set({ watchList }),
-	
+
 	addToWatchList: async (videoId) => {
 		set({ loading: true, error: null });
 		try {
@@ -43,6 +43,17 @@ export const useWatchListStore = create((set) => ({
 				watchList: state.watchList.filter(item => item.id !== videoId),
 				loading: false
 			}));
+		} catch (error) {
+			set({ error: error.message, loading: false });
+			throw error;
+		}
+	},
+
+	clearWatchList: async () => {
+		set({ loading: true, error: null });
+		try {
+			await axios.delete('/watchlist/clear', { withCredentials: true });
+			set({ watchList: [], loading: false });
 		} catch (error) {
 			set({ error: error.message, loading: false });
 			throw error;

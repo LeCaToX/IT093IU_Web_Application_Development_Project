@@ -3,13 +3,13 @@ import axios from "../config/axios";
 import toast from "react-hot-toast";
 
 export const useCategoryStore = create((set) => ({
-    categories: [], // Ensure initial state is always an array
-    loading: false,
+	categories: [], // Ensure initial state is always an array
+	loading: false,
 
 	setCategories: (categories) => set({ categories }),
 
 	createCategory: async (categoryData) => {
-	    set({ loading: true });
+		set({ loading: true });
 		try {
 			const res = await axios.post("/categories", categoryData);
 			set((prevState) => ({
@@ -33,17 +33,4 @@ export const useCategoryStore = create((set) => ({
 		}
 	},
 
-	deleteCategory: async (categoryId) => {
-		set({ loading: true });
-		try {
-			await axios.delete(`/categories/${categoryId}`);
-			set((prevCategories) => ({
-				categories: prevCategories.categories.filter((category) => category.category_id !== categoryId),
-				loading: false,
-			}));
-		} catch (error) {
-			set({ loading: false });
-			toast.error(error.response.data.error || "Failed to delete category");
-		}
-	},
 }));
