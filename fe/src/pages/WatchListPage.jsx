@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TrashIcon, BookmarkIcon, PlayIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, BookmarkIcon, PlayIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { StarIcon } from '@heroicons/react/24/solid';
 import { useUserStore } from '../stores/useUserStore';
 import { useWatchListStore } from '../stores/useWatchListStore';
@@ -13,7 +13,7 @@ const WatchListPage = () => {
     const navigate = useNavigate();
     const navigateWithLoading = useNavigateWithLoading();
     const { user } = useUserStore();
-    const { watchList, loading, error, fetchWatchList, removeFromWatchList } = useWatchListStore();
+    const { watchList, loading, error, fetchWatchList, removeFromWatchList, clearWatchList } = useWatchListStore();
 
     useEffect(() => {
         if (!user) {
@@ -29,6 +29,18 @@ const WatchListPage = () => {
             toast.success('Removed from watch list');
         } catch (error) {
             toast.error('Failed to remove from watch list');
+        }
+    };
+
+    const handleClearWatchList = async () => {
+        if (!window.confirm('Are you sure you want to clear your entire watchlist? This cannot be undone.')) {
+            return;
+        }
+        try {
+            await clearWatchList();
+            toast.success('Watchlist cleared successfully');
+        } catch (error) {
+            toast.error('Failed to clear watchlist');
         }
     };
 
@@ -69,9 +81,21 @@ const WatchListPage = () => {
                     </div>
                     <div>
                         <h1 className="text-3xl font-bold text-nf-text">Your Watchlist</h1>
-                        <p className="text-nf-text-secondary mt-1">
-                            {watchList?.length || 0} videos saved for later
-                        </p>
+                        <div className="flex items-center gap-4">
+                            <p className="text-nf-text-secondary mt-1">
+                                {watchList?.length || 0} videos saved for later
+                            </p>
+                            {watchList && watchList.length > 0 && (
+                                <button
+                                    onClick={handleClearWatchList}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-nf-text-muted hover:text-nf-error hover:bg-nf-error/10 transition-all duration-200 border border-nf-border hover:border-nf-error/50"
+                                    title="Clear all videos from watchlist"
+                                >
+                                    <XCircleIcon className="w-4 h-4" />
+                                    Clear All
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -87,7 +111,7 @@ const WatchListPage = () => {
                         <p className="text-nf-text-secondary max-w-md mb-6">
                             Start adding videos to your watchlist by clicking the bookmark icon on any video.
                         </p>
-                        <button 
+                        <button
                             onClick={() => navigateWithLoading('/')}
                             className="nf-btn nf-btn-primary"
                         >
@@ -97,13 +121,13 @@ const WatchListPage = () => {
                 ) : (
                     <div className="space-y-4">
                         {watchList.map((item, index) => (
-                            <div 
-                                key={item.id} 
+                            <div
+                                key={item.id}
                                 className="group nf-card-static p-4 flex items-center gap-4 hover:border-nf-border-hover transition-all duration-200"
                                 style={{ animationDelay: `${index * 50}ms` }}
                             >
                                 {/* Thumbnail */}
-                                <div 
+                                <div
                                     className="relative flex-shrink-0 w-40 aspect-video rounded-lg overflow-hidden cursor-pointer"
                                     onClick={() => navigateWithLoading(`/watch/${item.id}`)}
                                 >
@@ -118,8 +142,8 @@ const WatchListPage = () => {
                                 </div>
 
                                 {/* Info */}
-                                <div 
-                                    className="flex-1 min-w-0 cursor-pointer" 
+                                <div
+                                    className="flex-1 min-w-0 cursor-pointer"
                                     onClick={() => navigateWithLoading(`/watch/${item.id}`)}
                                 >
                                     <h3 className="text-lg font-semibold text-nf-text line-clamp-1 group-hover:text-nf-accent transition-colors">

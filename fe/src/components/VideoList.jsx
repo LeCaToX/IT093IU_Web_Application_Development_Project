@@ -7,8 +7,8 @@ import { useUserStore } from '../stores/useUserStore';
 import { useNavigateWithLoading } from '../hooks/useNavigateWithLoading';
 import { getImageSrc } from '../utils/imageUtils';
 
-import { TrashIcon, XMarkIcon, PlayIcon } from '@heroicons/react/24/outline';
-import { StarIcon, PencilIcon, FilmIcon } from '@heroicons/react/24/solid';
+import { TrashIcon, XMarkIcon, PlayIcon, MagnifyingGlassIcon, ChartBarIcon } from '@heroicons/react/24/outline';
+import { StarIcon, PencilIcon, FilmIcon, ChatBubbleLeftIcon, UserIcon } from '@heroicons/react/24/solid';
 import OptimizedImage from '../components/OptimizedImage';
 import ThumbnailSelector from '../components/ThumbnailSelector';
 import toast from 'react-hot-toast';
@@ -16,7 +16,7 @@ import toast from 'react-hot-toast';
 const VideoList = ({ showOnlyUserVideos = false, showAllVideos = false, userId = null }) => {
     const navigate = useNavigate();
     const navigateWithLoading = useNavigateWithLoading();
-    const { videos, userVideos, loading, fetchAllVideos, fetchVideosByUser, deleteVideo, updateVideo } = useVideoStore();
+    const { videos, userVideos, loading, fetchAllVideos, fetchVideosByUser, deleteVideo, updateVideo, fetchVideoAnalytics } = useVideoStore();
     const { categories, fetchAllCategories } = useCategoryStore();
     const { user, isAdmin } = useUserStore();
     const [editingVideo, setEditingVideo] = useState(null);
@@ -27,6 +27,10 @@ const VideoList = ({ showOnlyUserVideos = false, showAllVideos = false, userId =
         thumbnailUrl: '',
         categoryId: null
     });
+    const [searchQuery, setSearchQuery] = useState('');
+    const [analyticsVideo, setAnalyticsVideo] = useState(null);
+    const [analyticsData, setAnalyticsData] = useState(null);
+    const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
     useEffect(() => {
         if (showOnlyUserVideos && userId) {
@@ -43,6 +47,14 @@ const VideoList = ({ showOnlyUserVideos = false, showAllVideos = false, userId =
         : showAllVideos
             ? videos
             : videos.filter(video => video.uploaderId === user?.id);
+
+    // Filter videos by search query
+    const filteredVideos = searchQuery.trim()
+        ? displayVideos.filter(video =>
+            video.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            video.uploaderUsername?.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        : displayVideos;
 
     const handleDeleteVideo = async (videoId) => {
         try {
@@ -80,6 +92,20 @@ const VideoList = ({ showOnlyUserVideos = false, showAllVideos = false, userId =
         }
     };
 
+    const handleAnalyticsClick = async (video) => {
+        if (analyticsVideo === video.id) {
+            setAnalyticsVideo(null);
+            setAnalyticsData(null);
+            return;
+        }
+
+        setAnalyticsVideo(video.id);
+        setAnalyticsLoading(true);
+        const data = await fetchVideoAnalytics(video.id);
+        setAnalyticsData(data);
+        setAnalyticsLoading(false);
+    };
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -91,21 +117,54 @@ const VideoList = ({ showOnlyUserVideos = false, showAllVideos = false, userId =
 
     return (
         <div className="max-w-4xl mx-auto">
-            {displayVideos.length === 0 ? (
+            {/* Search Bar - show for both All Videos (admin) and My Videos (user) */}
+            {(showAllVideos || showOnlyUserVideos) && (
+                <div className="mb-6">
+                    <div className="relative">
+                        <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-nf-text-muted" />
+                        <input
+                            type="text"
+                            placeholder={showAllVideos ? "Search by title or uploader..." : "Search your videos..."}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="nf-input pl-12 w-full"
+                        />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery('')}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-nf-surface-hover rounded cursor-pointer"
+                            >
+                                <XMarkIcon className="w-4 h-4 text-nf-text-muted" />
+                            </button>
+                        )}
+                    </div>
+                    {searchQuery && (
+                        <p className="text-sm text-nf-text-muted mt-2">
+                            Found {filteredVideos.length} video{filteredVideos.length !== 1 ? 's' : ''}
+                        </p>
+                    )}
+                </div>
+            )}
+
+            {filteredVideos.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
                     <div className="p-6 rounded-2xl bg-nf-surface mb-6">
                         <FilmIcon className="w-16 h-16 text-nf-text-muted" />
                     </div>
                     <h2 className="text-xl font-semibold text-nf-text mb-2">
-                        No videos yet
+                        {searchQuery ? 'No videos found' : 'No videos yet'}
                     </h2>
                     <p className="text-nf-text-secondary">
-                        {showAllVideos ? 'No videos on the platform yet' : 'Create your first video to get started'}
+                        {searchQuery
+                            ? 'Try a different search term'
+                            : showAllVideos
+                                ? 'No videos on the platform yet'
+                                : 'Create your first video to get started'}
                     </p>
                 </div>
             ) : (
                 <div className="space-y-4">
-                    {displayVideos.map((item, index) => (
+                    {filteredVideos.map((item, index) => (
                         <div
                             key={item.id}
                             className="animate-fade-in"
@@ -158,6 +217,18 @@ const VideoList = ({ showOnlyUserVideos = false, showAllVideos = false, userId =
 
                                 {/* Actions */}
                                 <div className="flex items-center gap-2">
+                                    {showAllVideos && isAdmin && (
+                                        <button
+                                            onClick={() => handleAnalyticsClick(item)}
+                                            className={`p-2.5 rounded-lg transition-all duration-200 cursor-pointer ${analyticsVideo === item.id
+                                                ? 'text-nf-accent bg-nf-accent/10'
+                                                : 'text-nf-text-muted hover:text-nf-accent hover:bg-nf-accent/10'
+                                                }`}
+                                            title="View analytics"
+                                        >
+                                            <ChartBarIcon className="w-5 h-5" />
+                                        </button>
+                                    )}
                                     <button
                                         onClick={() => handleEditClick(item)}
                                         className="p-2.5 rounded-lg text-nf-text-muted hover:text-nf-secondary hover:bg-nf-secondary/10 transition-all duration-200 cursor-pointer"
@@ -174,6 +245,86 @@ const VideoList = ({ showOnlyUserVideos = false, showAllVideos = false, userId =
                                     </button>
                                 </div>
                             </div>
+
+                            {/* Analytics Panel */}
+                            {analyticsVideo === item.id && (
+                                <div className="mt-2 nf-card-static p-6 animate-fade-in">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-lg font-semibold text-nf-text flex items-center gap-2">
+                                            <ChartBarIcon className="w-5 h-5 text-nf-accent" />
+                                            Video Analytics
+                                        </h3>
+                                        <button
+                                            onClick={() => {
+                                                setAnalyticsVideo(null);
+                                                setAnalyticsData(null);
+                                            }}
+                                            className="p-2 rounded-lg text-nf-text-muted hover:text-nf-text hover:bg-nf-surface-hover transition-colors cursor-pointer"
+                                        >
+                                            <XMarkIcon className="w-5 h-5" />
+                                        </button>
+                                    </div>
+
+                                    {analyticsLoading ? (
+                                        <div className="flex items-center justify-center py-8">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-nf-accent"></div>
+                                        </div>
+                                    ) : analyticsData ? (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            {/* Ratings Section */}
+                                            <div className="space-y-3">
+                                                <div className="flex items-center gap-2 text-nf-text-secondary">
+                                                    <StarIcon className="w-5 h-5 text-nf-accent" />
+                                                    <span className="font-medium">Ratings ({analyticsData.ratingCount || 0})</span>
+                                                </div>
+                                                {analyticsData.ratings?.length > 0 ? (
+                                                    <div className="space-y-2 max-h-48 overflow-y-auto nf-scrollbar">
+                                                        {analyticsData.ratings.map((rating, idx) => (
+                                                            <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-nf-surface">
+                                                                <div className="flex items-center gap-2">
+                                                                    <UserIcon className="w-4 h-4 text-nf-text-muted" />
+                                                                    <span className="text-sm text-nf-text">{rating.username}</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-1">
+                                                                    <span className="text-sm font-medium text-nf-accent">{rating.rating}</span>
+                                                                    <StarIcon className="w-4 h-4 text-nf-accent" />
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-sm text-nf-text-muted py-2">No ratings yet</p>
+                                                )}
+                                            </div>
+
+                                            {/* Comments Section */}
+                                            <div className="space-y-3">
+                                                <div className="flex items-center gap-2 text-nf-text-secondary">
+                                                    <ChatBubbleLeftIcon className="w-5 h-5 text-nf-secondary" />
+                                                    <span className="font-medium">Comments ({analyticsData.commentCount || 0})</span>
+                                                </div>
+                                                {analyticsData.commenters?.length > 0 ? (
+                                                    <div className="space-y-2 max-h-48 overflow-y-auto nf-scrollbar">
+                                                        {analyticsData.commenters.map((commenter, idx) => (
+                                                            <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-nf-surface">
+                                                                <div className="flex items-center gap-2">
+                                                                    <UserIcon className="w-4 h-4 text-nf-text-muted" />
+                                                                    <span className="text-sm text-nf-text">{commenter.username}</span>
+                                                                </div>
+                                                                <span className="text-sm text-nf-secondary">{commenter.commentCount} comment{commenter.commentCount !== 1 ? 's' : ''}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-sm text-nf-text-muted py-2">No comments yet</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <p className="text-nf-text-muted">Failed to load analytics</p>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Edit Form */}
                             {editingVideo === item.id && (

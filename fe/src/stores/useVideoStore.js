@@ -136,4 +136,14 @@ export const useVideoStore = create((set) => ({
 			toast.error(error.response?.data?.error || "Failed to delete video");
 		}
 	},
+
+	fetchVideoAnalytics: async (videoId) => {
+		try {
+			const response = await axios.get(`/videos/${videoId}/analytics`, { withCredentials: true });
+			return response.data;
+		} catch (error) {
+			toast.error(error.response?.data || "Failed to fetch analytics");
+			return null;
+		}
+	},
 }));

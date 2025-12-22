@@ -308,7 +308,7 @@ const AdminPage = () => {
                     transition={{ duration: 0.3 }}
                 >
                     {activeTab === "overview" && renderOverview()}
-                    {activeTab === "create" && <CreateVideoForm />}
+                    {activeTab === "create" && <CreateVideoForm onSuccess={() => setActiveTab("videos")} />}
                     {activeTab === "videos" && <VideoList showAllVideos={true} />}
                     {activeTab === "users" && renderUserManagement()}
                 </motion.div>

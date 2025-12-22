@@ -46,13 +46,7 @@ public class Video {
     private Set<VideoRating> ratings = new HashSet<>();
 
     @OneToMany(mappedBy = "video", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<VideoTag> tags = new HashSet<>();
-
-    @OneToMany(mappedBy = "video", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
-
-    @OneToMany(mappedBy = "relatedVideo", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Notification> notifications = new ArrayList<>();
 
     // Constructors
     public Video() {
@@ -169,16 +163,6 @@ public class Video {
     public void removeRating(VideoRating rating) {
         ratings.remove(rating);
         rating.setVideo(null);
-    }
-
-    public void addTag(VideoTag tag) {
-        tags.add(tag);
-        tag.setVideo(this);
-    }
-
-    public void removeTag(VideoTag tag) {
-        tags.remove(tag);
-        tag.setVideo(null);
     }
 
     public void addComment(Comment comment) {

@@ -38,7 +38,7 @@ const WatchPage = () => {
     const navigateWithLoading = useNavigateWithLoading();
 
     const { user } = useUserStore();
-    const { video, videos, loading, fetchVideo, fetchAllVideos } = useVideoStore();
+    const { video, videos, similarVideos, loading, fetchVideo, fetchAllVideos, fetchSimilarVideos } = useVideoStore();
     const { videoComments, loadingComment, createComment, fetchCommentByVideo, deleteComment, createReply } = useCommentStore();
     const { addToWatchList, removeFromWatchList, isInWatchList } = useWatchListStore();
     const { likeComment, dislikeComment, removeLike, removeDislike } = useCommentInteractionStore();
@@ -62,9 +62,9 @@ const WatchPage = () => {
         setVideoLoaded(false);
         if (id) {
             fetchVideo(id);
-            fetchAllVideos();
+            fetchSimilarVideos(id);
         }
-    }, [id, fetchVideo, fetchAllVideos]);
+    }, [id, fetchVideo, fetchSimilarVideos]);
 
     useEffect(() => {
         fetchCommentByVideo(id);
@@ -79,13 +79,20 @@ const WatchPage = () => {
     // Handlers
     const handleSubmitRating = async (rating) => {
         try {
-            await axios.post("/ratings", { videoId: video.id, userId: user.id, rating: parseInt(rating) });
-            setUserRating(rating); // Update state to reflect the submitted rating
-            toast.success(`Rated ${rating} stars!`);
+            if (rating === 0) {
+                // Remove rating when 0 is selected
+                await axios.delete(`/ratings/${user.id}/${video.id}`);
+                setUserRating(0);
+                toast.success('Rating removed!');
+            } else {
+                await axios.post("/ratings", { videoId: video.id, userId: user.id, rating: parseInt(rating) });
+                setUserRating(rating);
+                toast.success(`Rated ${rating} stars!`);
+            }
             setShowRatingDropdown(false);
             await fetchVideo(id);
         } catch (err) {
-            toast.error('Could not rate video.');
+            toast.error('Could not update rating.');
         }
     };
 
@@ -143,7 +150,21 @@ const WatchPage = () => {
 
     const handleLikeComment = async (commentId) => {
         try {
-            const comment = videoComments.find(c => c.id === commentId);
+            // Find comment in top-level comments or in replies
+            let comment = videoComments.find(c => c.id === commentId);
+            if (!comment) {
+                // Search in replies
+                for (const c of videoComments) {
+                    if (c.replies) {
+                        comment = c.replies.find(r => r.id === commentId);
+                        if (comment) break;
+                    }
+                }
+            }
+            if (!comment) {
+                toast.error('Comment not found');
+                return;
+            }
             if (comment.likedByUser) {
                 await removeLike(commentId, user.id);
             } else {
@@ -158,7 +179,21 @@ const WatchPage = () => {
 
     const handleDislikeComment = async (commentId) => {
         try {
-            const comment = videoComments.find(c => c.id === commentId);
+            // Find comment in top-level comments or in replies
+            let comment = videoComments.find(c => c.id === commentId);
+            if (!comment) {
+                // Search in replies
+                for (const c of videoComments) {
+                    if (c.replies) {
+                        comment = c.replies.find(r => r.id === commentId);
+                        if (comment) break;
+                    }
+                }
+            }
+            if (!comment) {
+                toast.error('Comment not found');
+                return;
+            }
             if (comment.dislikedByUser) {
                 await removeDislike(commentId, user.id);
             } else {
@@ -195,8 +230,8 @@ const WatchPage = () => {
         toast.success('Link copied to clipboard!');
     };
 
-    // Get related videos (exclude current)
-    const relatedVideos = videos.filter(v => v.id !== parseInt(id)).slice(0, 8);
+    // Get similar videos from API (exclude current video just in case)
+    const relatedVideos = similarVideos?.filter(v => v.id !== parseInt(id)).slice(0, 8) || [];
 
     return (
         <div className="watch-page min-h-screen">
@@ -513,11 +548,17 @@ const WatchPage = () => {
                                                                             </div>
                                                                             <p className="text-zinc-300 text-sm">{reply.content}</p>
                                                                             <div className="flex items-center gap-3 mt-2">
-                                                                                <button className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300">
+                                                                                <button
+                                                                                    onClick={() => handleLikeComment(reply.id)}
+                                                                                    className={`flex items-center gap-1 text-xs transition-colors ${reply.likedByUser ? 'text-amber-400' : 'text-zinc-500 hover:text-zinc-300'}`}
+                                                                                >
                                                                                     <HandThumbUpIcon className="w-3.5 h-3.5" />
                                                                                     <span>{reply.likes || 0}</span>
                                                                                 </button>
-                                                                                <button className="text-xs text-zinc-500 hover:text-zinc-300">
+                                                                                <button
+                                                                                    onClick={() => handleDislikeComment(reply.id)}
+                                                                                    className={`text-xs transition-colors ${reply.dislikedByUser ? 'text-amber-400' : 'text-zinc-500 hover:text-zinc-300'}`}
+                                                                                >
                                                                                     <HandThumbDownIcon className="w-3.5 h-3.5" />
                                                                                 </button>
                                                                                 {user?.id === reply.userId && (

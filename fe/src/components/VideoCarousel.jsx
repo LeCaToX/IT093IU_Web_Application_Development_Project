@@ -273,11 +273,11 @@ const VideoCarousel = () => {
                                 key={index}
                                 className={`${current === index ? 'block' : 'hidden'} transition-all duration-700 ease-out`}
                             >
-                                <h1 className="text-4xl md:text-6xl font-bold text-nf-text mb-4 drop-shadow-lg line-clamp-2">
+                                <h1 className="text-4xl md:text-6xl font-bold text-nf-text mb-6 drop-shadow-lg">
                                     {video.title}
                                 </h1>
 
-                                <ul className="flex flex-wrap gap-2 mb-4">
+                                <ul className="flex flex-wrap gap-2 mb-6">
                                     {video.tags.map((tag) => (
                                         <li key={tag} className="nf-tag">
                                             {tag}
@@ -285,7 +285,7 @@ const VideoCarousel = () => {
                                     ))}
                                 </ul>
 
-                                <p className="hidden lg:block text-lg text-nf-text-secondary mb-6 max-w-md line-clamp-1">
+                                <p className="hidden lg:block text-lg text-nf-text-secondary mb-6 max-w-md line-clamp-2">
                                     {video.description && video.description.length > 120
                                         ? `${video.description.substring(0, 120)}...`
                                         : video.description}

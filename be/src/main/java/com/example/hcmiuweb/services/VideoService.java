@@ -1,22 +1,30 @@
 package com.example.hcmiuweb.services;
 
 import com.example.hcmiuweb.dtos.VideoDTO;
+import com.example.hcmiuweb.entities.Comment;
 import com.example.hcmiuweb.entities.Video;
+import com.example.hcmiuweb.entities.VideoRating;
+import com.example.hcmiuweb.repositories.CommentRepository;
+import com.example.hcmiuweb.repositories.RatingRepository;
 import com.example.hcmiuweb.repositories.VideoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class VideoService {
     private final VideoRepository videoRepository;
+    private final RatingRepository ratingRepository;
+    private final CommentRepository commentRepository;
 
-    public VideoService(VideoRepository videoRepository) {
+    public VideoService(VideoRepository videoRepository, RatingRepository ratingRepository,
+            CommentRepository commentRepository) {
         this.videoRepository = videoRepository;
+        this.ratingRepository = ratingRepository;
+        this.commentRepository = commentRepository;
     }
 
     @Transactional(readOnly = true)
@@ -115,10 +123,13 @@ public class VideoService {
                     return videoRepository.save(existingVideo);
                 })
                 .orElseThrow(() -> new RuntimeException("Video not found with id: " + video.getId()));
-    }    public void deleteVideo(Long id) {
+    }
+
+    public void deleteVideo(Long id) {
         Optional<Video> videoOptional = videoRepository.findById(id);
         if (videoOptional.isPresent()) {
-            // Log deletion attempt (using System.out since you don't have a logger configured)
+            // Log deletion attempt (using System.out since you don't have a logger
+            // configured)
             System.out.println("Deleting video with ID: " + id);
 
             // Delete the video (this relies on cascade settings in the Video entity)
@@ -136,7 +147,8 @@ public class VideoService {
         dto.setId(video.getId());
         dto.setTitle(video.getTitle());
         dto.setDescription(video.getDescription());
-        dto.setUploadDate(video.getUploadDate());        dto.setDuration(video.getDuration());
+        dto.setUploadDate(video.getUploadDate());
+        dto.setDuration(video.getDuration());
         dto.setUrl(video.getUrl());
         dto.setThumbnailUrl(video.getThumbnailUrl()); // Added this line to include thumbnailUrl
         dto.setViewCount(video.getViewCount()); // Added this line to include viewCount
@@ -157,9 +169,11 @@ public class VideoService {
         videoRepository.findAverageRatingByVideoId(video.getId())
                 .ifPresent(dto::setAverageRating);
 
-        dto.setRatingCount(videoRepository.countRatingsByVideoId(video.getId()));        return dto;
+        dto.setRatingCount(videoRepository.countRatingsByVideoId(video.getId()));
+        return dto;
     }
-      @Transactional
+
+    @Transactional
     public VideoDTO incrementViewCount(Long videoId) {
         return videoRepository.findById(videoId)
                 .map(video -> {
@@ -173,27 +187,30 @@ public class VideoService {
                     return convertToDTO(updatedVideo);
                 })
                 .orElseThrow(() -> new RuntimeException("Video not found with id: " + videoId));
-    }    @Transactional(readOnly = true)
+    }
+
+    @Transactional(readOnly = true)
     public List<VideoDTO> findSimilarVideos(Long videoId) {
         // First get the video to extract its title
         Optional<Video> currentVideo = videoRepository.findById(videoId);
         if (currentVideo.isEmpty()) {
             return List.of(); // Return empty list if video not found
         }
-        
+
         String videoTitle = currentVideo.get().getTitle();
         if (videoTitle == null || videoTitle.trim().isEmpty()) {
             return List.of(); // Return empty list if no title
         }
-        
+
         // Use the BoW (Bag of Words) query to find similar videos
         List<Object[]> similarVideoResults = videoRepository.findSimilarVideos(videoId, videoTitle);
-        
+
         // Convert Object[] results to VideoDTO
         // Each Object[] contains: [videoId, videoName, similarWords]
         return similarVideoResults.stream()
                 .filter(result -> result.length >= 3 && result[2] != null) // Filter out results with no similarity
-                .filter(result -> ((Number) result[2]).intValue() > 0) // Only include videos with at least 1 similar word
+                .filter(result -> ((Number) result[2]).intValue() > 0) // Only include videos with at least 1 similar
+                                                                       // word
                 .map(result -> {
                     Long id = ((Number) result[0]).longValue();
                     // Fetch the full Video entity to create proper DTO
@@ -204,5 +221,53 @@ public class VideoService {
                 .filter(dto -> dto != null) // Remove any null results
                 .limit(10) // Limit to 10 similar videos
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Object> getVideoAnalytics(Long videoId) {
+        Map<String, Object> analytics = new HashMap<>();
+
+        // Get video info
+        Optional<Video> videoOpt = videoRepository.findById(videoId);
+        if (videoOpt.isEmpty()) {
+            throw new RuntimeException("Video not found with id: " + videoId);
+        }
+
+        // Get ratings for this video
+        List<VideoRating> ratings = ratingRepository.findByVideo_Id(videoId);
+        List<Map<String, Object>> ratingsList = ratings.stream()
+                .map(r -> {
+                    Map<String, Object> ratingInfo = new HashMap<>();
+                    ratingInfo.put("username", r.getUser().getUsername());
+                    ratingInfo.put("userId", r.getUser().getId());
+                    ratingInfo.put("rating", r.getRating());
+                    return ratingInfo;
+                })
+                .collect(Collectors.toList());
+        analytics.put("ratings", ratingsList);
+        analytics.put("ratingCount", ratings.size());
+
+        // Get comments for this video
+        List<Comment> comments = commentRepository.findByVideo_Id(videoId);
+
+        // Group comments by user and count
+        Map<Long, Map<String, Object>> userCommentCounts = new HashMap<>();
+        for (Comment comment : comments) {
+            Long userId = comment.getUser().getId();
+            if (!userCommentCounts.containsKey(userId)) {
+                Map<String, Object> userInfo = new HashMap<>();
+                userInfo.put("username", comment.getUser().getUsername());
+                userInfo.put("userId", userId);
+                userInfo.put("commentCount", 0);
+                userCommentCounts.put(userId, userInfo);
+            }
+            Map<String, Object> userInfo = userCommentCounts.get(userId);
+            userInfo.put("commentCount", (int) userInfo.get("commentCount") + 1);
+        }
+
+        analytics.put("commenters", new ArrayList<>(userCommentCounts.values()));
+        analytics.put("commentCount", comments.size());
+
+        return analytics;
     }
 }

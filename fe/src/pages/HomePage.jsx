@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
-import { ArrowRightIcon, PlayIcon, SparklesIcon, ShieldCheckIcon, DevicePhoneMobileIcon } from '@heroicons/react/24/solid';
+import { ArrowRightIcon, PlayIcon, SparklesIcon, ShieldCheckIcon, DevicePhoneMobileIcon, ChevronDownIcon } from '@heroicons/react/24/solid';
 import OptimizedImage from '../components/OptimizedImage';
 
 const features = [
@@ -24,11 +24,120 @@ const features = [
 
 const HomePage = () => {
     const [email, setEmail] = useState('');
+    const heroRef = useRef(null);
+    const [isScrolling, setIsScrolling] = useState(false);
+    const scrollTimeoutRef = useRef(null);
+
+    const scrollToNextSection = () => {
+        const nextSection = document.querySelector('[data-features-section]');
+        if (nextSection) {
+            nextSection.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    };
+
+    const scrollToHero = () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    };
+
+    const handleScroll = (event) => {
+        const scrollThreshold = 50;
+
+        if (!isScrolling) {
+            const currentScrollY = window.scrollY;
+            const heroHeight = heroRef.current?.offsetHeight || 0;
+
+            if (event.deltaY > scrollThreshold) {
+                if (currentScrollY < heroHeight * 0.8) {
+                    event.preventDefault();
+                    setIsScrolling(true);
+                    scrollToNextSection();
+
+                    if (scrollTimeoutRef.current) {
+                        clearTimeout(scrollTimeoutRef.current);
+                    }
+                    scrollTimeoutRef.current = setTimeout(() => {
+                        setIsScrolling(false);
+                    }, 1000);
+                }
+            } else if (event.deltaY < -scrollThreshold) {
+                const boundaryZone = heroHeight * 0.1;
+                if (currentScrollY > heroHeight - boundaryZone && currentScrollY <= heroHeight + boundaryZone) {
+                    event.preventDefault();
+                    setIsScrolling(true);
+                    scrollToHero();
+
+                    if (scrollTimeoutRef.current) {
+                        clearTimeout(scrollTimeoutRef.current);
+                    }
+                    scrollTimeoutRef.current = setTimeout(() => {
+                        setIsScrolling(false);
+                    }, 1000);
+                }
+            }
+        }
+    };
+
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            if (!isScrolling) {
+                if (event.key === 'ArrowDown' || event.key === 'PageDown') {
+                    event.preventDefault();
+                    setIsScrolling(true);
+                    scrollToNextSection();
+                    if (scrollTimeoutRef.current) {
+                        clearTimeout(scrollTimeoutRef.current);
+                    }
+                    scrollTimeoutRef.current = setTimeout(() => {
+                        setIsScrolling(false);
+                    }, 1000);
+                } else if (event.key === 'ArrowUp' || event.key === 'PageUp' || event.key === 'Home') {
+                    event.preventDefault();
+                    setIsScrolling(true);
+                    scrollToHero();
+                    if (scrollTimeoutRef.current) {
+                        clearTimeout(scrollTimeoutRef.current);
+                    }
+                    scrollTimeoutRef.current = setTimeout(() => {
+                        setIsScrolling(false);
+                    }, 1000);
+                }
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isScrolling]);
+
+    useEffect(() => {
+        const handleWheelEvent = (event) => {
+            handleScroll(event);
+        };
+
+        document.addEventListener('wheel', handleWheelEvent, { passive: false });
+
+        return () => {
+            document.removeEventListener('wheel', handleWheelEvent);
+        };
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+            }
+        };
+    }, []);
 
     return (
         <div className="nf-page">
             {/* Hero Section */}
-            <div className="relative min-h-screen flex items-center">
+            <div ref={heroRef} className="relative min-h-screen flex items-center">
                 {/* Background */}
                 <div className="fixed inset-0">
                     <OptimizedImage
@@ -76,7 +185,7 @@ const HomePage = () => {
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="nf-input flex-1"
                                 />
-                                <Link 
+                                <Link
                                     to={`/signup?email=${encodeURIComponent(email)}`}
                                     className="nf-btn nf-btn-primary whitespace-nowrap"
                                 >
@@ -104,16 +213,27 @@ const HomePage = () => {
                     </div>
                 </div>
 
-                {/* Scroll indicator */}
-                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 animate-bounce-gentle">
-                    <div className="w-6 h-10 rounded-full border-2 border-nf-text-muted flex items-start justify-center p-2">
-                        <div className="w-1 h-2 rounded-full bg-nf-text-muted animate-pulse" />
+                {/* Scroll down button - same as VideoCarousel */}
+                <div className="absolute bottom-8 sm:bottom-12 md:bottom-20 right-4 sm:right-6 md:right-8 z-30 flex flex-col items-center gap-2">
+                    <div className="hidden lg:block text-center text-xs text-nf-text-muted mb-2 font-medium">
+                        Use ↑↓ or scroll
                     </div>
+
+                    <button
+                        onClick={scrollToNextSection}
+                        className="group flex flex-col items-center gap-1 p-3 nf-glass rounded-full transition-all duration-300 hover:scale-110 animate-bounce-gentle hover:animate-none cursor-pointer"
+                        title="Scroll to features"
+                    >
+                        <ChevronDownIcon className="w-5 h-5 text-nf-text-secondary group-hover:text-nf-accent transition-colors" />
+                        <span className="text-xs text-nf-text-muted group-hover:text-nf-text font-medium">
+                            Explore
+                        </span>
+                    </button>
                 </div>
             </div>
 
             {/* Features Section */}
-            <section className="relative z-10 bg-nf-bg py-24">
+            <section data-features-section className="relative z-10 bg-nf-bg py-24">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     {/* Section Header */}
                     <div className="text-center mb-16">
@@ -128,8 +248,8 @@ const HomePage = () => {
                     {/* Features Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
                         {features.map((feature, index) => (
-                            <div 
-                                key={index} 
+                            <div
+                                key={index}
                                 className="nf-card-static p-8 text-center group hover:border-nf-accent/30 transition-all duration-300"
                             >
                                 <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-nf-accent/10 mb-6 group-hover:bg-nf-accent/20 transition-colors">

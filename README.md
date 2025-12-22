@@ -1,137 +1,170 @@
-# Web Video Platform
+# NexFlixx - Video Streaming Platform
 
-A multi-container web application for video streaming with user management.
+A full-stack video streaming platform built with React and Spring Boot.
 
-## Tech Stack
+## Prerequisites
 
-- **Frontend:** React + Vite, TailwindCSS
-- **Backend:** Spring Boot, Spring Security + JWT
-- **Database:** MySQL 8.0
-- **Storage:** Cloudinary (images, avatars)
-- **Containerization:** Docker Compose
+### For Docker Setup (Recommended)
+- Docker Desktop installed and running
 
-## Features
+### For Manual Setup
+- Node.js 18+ and npm
+- Java 21 (JDK)
+- MySQL 8.0
 
-### Video Management
-- Create, edit, delete videos
-- Thumbnail Selection:
-  - Choose from existing preset assets
-  - Custom URL input
+---
 
-### User Profiles
-- Profile Image Selection:
-  - Choose from preset avatars
-  - Upload custom image to Cloudinary
-- User registration and authentication
-- Watch list management
+## Option 1: Run with Docker (Recommended)
 
-### Additional Features
-- Video categories and search
-- Comments and ratings
-- Related videos sidebar
-- Notifications (manual fetch)
+This is the easiest way to run the entire application.
 
-## Project Structure
+### Step 1: Clone the Repository
 
-```
-├── be/                  # Backend (Spring Boot)
-│   └── src/
-├── fe/                  # Frontend (React + Vite)
-│   └── src/
-│       ├── components/  # React components
-│       ├── pages/       # Page components
-│       ├── stores/      # Zustand stores
-│       └── utils/       # Utility functions
-├── docker-compose.yml
-└── README.md
+```bash
+git clone https://github.com/Ryuma-sudo/IT093IU_Web_Application_Development_Project.git
+cd IT093IU_Web_Application_Development_Project
 ```
 
-## Quick Start
-
-### Prerequisites
-- Docker and Docker Compose installed
-
-### Run the Application
+### Step 2: Start All Services
 
 ```bash
 docker-compose up --build
 ```
 
-### Access Points
-- **Frontend:** http://localhost:5173
-- **Backend API:** http://localhost:8080
+Wait 2-3 minutes for all services to start.
 
-### Stop Application
+### Step 3: Access the Application
+
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:8080
+
+### Step 4: Stop the Application
 
 ```bash
 docker-compose down
 ```
 
-## Configuration
+To remove all data including database:
 
-### Environment Variables
-
-| Variable | Description |
-|----------|-------------|
-| `SPRING_DATASOURCE_URL` | MySQL connection URL |
-| `SPRING_DATASOURCE_USERNAME` | Database username |
-| `SPRING_DATASOURCE_PASSWORD` | Database password |
-
-### Cloudinary Configuration
-
-In `application.properties`:
-
-```properties
-cloudinary.cloud-name=your-cloud-name
-cloudinary.api-key=your-api-key
-cloudinary.api-secret=your-api-secret
-```
-
-## Troubleshooting
-
-**Port conflicts:**
 ```bash
-netstat -ano | findstr :5173
+docker-compose down -v
 ```
 
-**View logs:**
+---
+
+## Option 2: Manual Setup (Development)
+
+### Step 1: Set Up MySQL Database
+
+Start MySQL and run:
+
+```sql
+CREATE DATABASE db;
+CREATE USER 'admin'@'localhost' IDENTIFIED BY 'admin';
+GRANT ALL PRIVILEGES ON db.* TO 'admin'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+### Step 2: Run the Backend
+
+Open a terminal and navigate to the backend folder:
+
 ```bash
-docker-compose logs frontend
-docker-compose logs backend
+cd be
 ```
 
-**Rebuild without cache:**
+Set environment variables:
+
+**Windows (PowerShell):**
+```powershell
+$env:MYSQL_HOST="localhost"
+$env:MYSQL_PORT="3306"
+$env:MYSQL_DATABASE="db"
+$env:MYSQL_USER="admin"
+$env:MYSQL_PASSWORD="admin"
+```
+
+**Windows (Command Prompt):**
+```cmd
+set MYSQL_HOST=localhost
+set MYSQL_PORT=3306
+set MYSQL_DATABASE=db
+set MYSQL_USER=admin
+set MYSQL_PASSWORD=admin
+```
+
+**Mac/Linux:**
 ```bash
-docker-compose build --no-cache
+export MYSQL_HOST=localhost
+export MYSQL_PORT=3306
+export MYSQL_DATABASE=db
+export MYSQL_USER=admin
+export MYSQL_PASSWORD=admin
 ```
 
-## API Endpoints
+Run the backend:
 
-### Authentication
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/signup` | Register new user |
-| POST | `/api/auth/signin` | User login |
-| POST | `/api/auth/logout` | User logout |
+```bash
+# Windows
+.\mvnw.cmd spring-boot:run
 
-### Videos
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/videos` | List all videos |
-| POST | `/api/videos` | Create video |
-| PUT | `/api/videos/{id}` | Update video |
-| DELETE | `/api/videos/{id}` | Delete video |
+# Mac/Linux
+./mvnw spring-boot:run
+```
 
-### File Uploads
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/uploads/avatar` | Upload avatar to Cloudinary |
-| POST | `/api/uploads/avatar-url` | Set avatar from URL |
+The backend will start on http://localhost:8080
 
-## Contributors
+### Step 3: Run the Frontend
 
-- [Add your team members here]
+Open a new terminal and navigate to the frontend folder:
 
-## License
+```bash
+cd fe
+```
 
-MIT License
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+The frontend will start on http://localhost:5173
+
+---
+
+## Default Login Accounts
+
+| Username | Password | Role |
+|----------|----------|------|
+| admin | 123456789 | Admin |
+---
+
+## Project Structure
+
+```
+├── be/                  # Backend (Spring Boot)
+│   ├── src/main/java/   # Java source code
+│   └── src/main/resources/application.properties
+│
+├── fe/                  # Frontend (React + Vite)
+│   ├── src/             # React source code
+│   └── public/          # Static assets
+│
+└── docker-compose.yml   # Docker configuration
+```
+
+---
+
+## Tech Stack
+
+- Frontend: React 18, Vite, TailwindCSS, Zustand
+- Backend: Spring Boot 3.2.3, Spring Security, JWT
+- Database: MySQL 8.0
+- Storage: Cloudinary
+- Container: Docker Compose
